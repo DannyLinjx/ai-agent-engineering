@@ -304,34 +304,25 @@ ai-agent-engineering/
 
 请安装完整的 `ai-agent-engineering/` 目录，而不是只复制 `SKILL.md`——本 Skill 按需使用 `scripts/`、`templates/`、`references/`、`schemas/`、`assets/`、`examples/` 与 `evals/` 中的资源。
 
-以下安装示例假设 GitHub 仓库结构为：
-
-```text
-YOUR_REPOSITORY/
-├── ai-agent-engineering/
-├── engineering-coding-job/
-└── loop-engineering/
-```
-
-请将 `YOUR_GITHUB_NAME/YOUR_REPOSITORY` 替换为实际仓库地址。
+以下安装示例假设本 Skill 独立发布在 GitHub 仓库 [DannyLinjx/ai-agent-engineering](https://github.com/DannyLinjx/ai-agent-engineering) 中，仓库根目录即 Skill 根目录（直接包含 `SKILL.md`）。
 
 ### Codex
 
 Codex 默认从 `$CODEX_HOME/skills` 发现 Skill；未设置 `CODEX_HOME` 时，默认目录为 `~/.codex/skills`。
 
-推荐通过 Codex 内置的 `$skill-installer` 安装 GitHub 子目录。在 Codex 对话中输入：
+推荐通过 Codex 内置的 `$skill-installer` 安装本仓库。在 Codex 对话中输入：
 
 ```text
-Use $skill-installer to install https://github.com/YOUR_GITHUB_NAME/YOUR_REPOSITORY/tree/main/ai-agent-engineering
+Use $skill-installer to install https://github.com/DannyLinjx/ai-agent-engineering
 ```
 
 也可以手动安装完整目录：
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_NAME/YOUR_REPOSITORY.git
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
 CODEX_SKILLS_TARGET="${CODEX_HOME:-$HOME/.codex}/skills"
 mkdir -p "$CODEX_SKILLS_TARGET"
-cp -R YOUR_REPOSITORY/ai-agent-engineering "$CODEX_SKILLS_TARGET/"
+cp -R ai-agent-engineering "$CODEX_SKILLS_TARGET/"
 ```
 
 安装后在下一轮对话或新任务中调用；若 Skill 列表没有刷新，重启 Codex。
@@ -347,10 +338,10 @@ Use $ai-agent-engineering to build a secure coding agent in this repository, wit
 OpenClaw 支持从本地 Skill 目录安装。默认安装到当前 workspace 的 `skills/`，`--global` 安装到共享的 `~/.openclaw/skills`：
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_NAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
-openclaw skills install ./ai-agent-engineering --as ai-agent-engineering
-openclaw skills install ./ai-agent-engineering --as ai-agent-engineering --global
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
+cd ai-agent-engineering
+openclaw skills install . --as ai-agent-engineering
+openclaw skills install . --as ai-agent-engineering --global
 ```
 
 如果 Skill 已安装在 Codex 目录中，也可以使用 OpenClaw 官方迁移命令：
@@ -367,9 +358,9 @@ openclaw migrate codex
 Hermes 将用户 Skill 放在 `~/.hermes/skills/`：
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_NAME/YOUR_REPOSITORY.git
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
 mkdir -p "$HOME/.hermes/skills"
-cp -R YOUR_REPOSITORY/ai-agent-engineering "$HOME/.hermes/skills/"
+cp -R ai-agent-engineering "$HOME/.hermes/skills/"
 hermes skills list
 ```
 
@@ -386,9 +377,9 @@ hermes chat -q "/ai-agent-engineering design and scaffold a research agent with 
 按项目安装完整目录：
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_NAME/YOUR_REPOSITORY.git
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
 mkdir -p YOUR_PROJECT/.trae/skills
-cp -R YOUR_REPOSITORY/ai-agent-engineering YOUR_PROJECT/.trae/skills/
+cp -R ai-agent-engineering YOUR_PROJECT/.trae/skills/
 ```
 
 最终结构应为：
@@ -618,7 +609,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 ## 与其他 Skill 组合
 
-本 Skill 专注于“构建 Agent 系统”，可以与同一仓库中的另外两个 Skill 组合使用：
+本 Skill 专注于“构建 Agent 系统”，可以与另外两个独立发布的配套 Skill 组合使用：[engineering-coding-job](https://github.com/DannyLinjx/engineering-coding-job) 与 [loop-engineering](https://github.com/DannyLinjx/loop-engineering)：
 
 | Skill | 职责 |
 | --- | --- |
