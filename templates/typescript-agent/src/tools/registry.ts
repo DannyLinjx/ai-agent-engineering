@@ -1,0 +1,4 @@
+import { AgentState } from "../contracts.js";
+export interface ToolResult { status: "success" | "error" | "cancelled"; summary: string; retryable: boolean; }
+export interface Tool { name: string; category: "read" | "write" | "exec" | "network" | "database" | "browser" | "communication"; riskLevel: "low" | "medium" | "high" | "critical"; execute(input: unknown, context: { state: AgentState; signal: AbortSignal }): Promise<ToolResult>; }
+export class ToolRegistry { private readonly tools = new Map<string, Tool>(); register(tool: Tool): void { if (this.tools.has(tool.name)) throw new Error(`Duplicate tool: ${tool.name}`); this.tools.set(tool.name, tool); } get(name: string): Tool { const tool = this.tools.get(name); if (!tool) throw new Error(`Unknown tool: ${name}`); return tool; } list(): Tool[] { return [...this.tools.values()]; } }

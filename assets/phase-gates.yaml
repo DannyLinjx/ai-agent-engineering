@@ -1,0 +1,35 @@
+version: "1.0"
+phases:
+  P0:
+    name: "Safety and runtime foundation"
+    required_evidence: ["agent-charter", "contracts", "threat-model", "permission-tests", "budget-tests"]
+  P1:
+    name: "Minimal agent loop"
+    required_evidence: ["no-tool", "one-tool", "tool-failure", "cancel", "max-step", "repeat-detection"]
+  P2:
+    name: "Tools"
+    required_evidence: ["tool-schemas", "timeout", "output-cap", "idempotency", "permission-path"]
+  P3:
+    name: "Session and checkpoint"
+    required_evidence: ["restart-recovery", "rewind", "duplicate-delivery", "migration"]
+  P4:
+    name: "Context"
+    required_evidence: ["artifact-offload", "compaction", "objective-retention", "injection-boundary"]
+  P5:
+    name: "Memory"
+    required_evidence: ["write-policy", "retrieval", "conflict", "isolation", "deletion"]
+  P6:
+    name: "Skills and hooks"
+    required_evidence: ["lazy-selection", "script-permission", "hook-order", "hook-failure"]
+  P7:
+    name: "Subagents and optional integrations"
+    required_evidence: ["scope-isolation", "budget-isolation", "structured-merge", "optional-adapter-classification"]
+  P8:
+    name: "Verification"
+    required_evidence: ["completion-criteria", "negative-verifier", "end-to-end-scenario"]
+  P9:
+    name: "Model router"
+    required_evidence: ["capability-filter", "privacy", "budget", "outage-fallback"]
+  P10:
+    name: "Production"
+    required_evidence: ["slo", "dashboards", "runbook", "canary", "rollback", "readiness-report"]

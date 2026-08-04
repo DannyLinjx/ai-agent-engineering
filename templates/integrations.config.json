@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "profile": "development",
+  "channels": {"selection": "none", "default": null, "adapters": []},
+  "model_providers": {
+    "selection": "mock",
+    "default": "mock",
+    "fallback_order": ["mock"],
+    "providers": [
+      {"id": "mock", "type": "mock", "enabled": true, "required": false, "credential_refs": {}, "settings": {"fixture": "deterministic"}}
+    ]
+  },
+  "mcp": {"selection": "none", "servers": []},
+  "test_policy": {"unconfigured_optional": "skip", "require_live_model_for_profiles": ["production"], "fail_on_skipped_required": true}
+}

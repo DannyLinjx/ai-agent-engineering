@@ -1,0 +1,7 @@
+{
+  "version": "1.0", "project": "example-agent", "generated_at": "2026-08-04T00:00:00Z",
+  "capabilities": [
+    {"capability": "runtime", "current_status": "implemented", "target_status": "verified", "priority": "P1", "dependencies": ["permissions"], "implementation_files": ["src/runtime"], "risk": "unbounded loop", "verification": "agent loop scenarios", "evidence": []},
+    {"capability": "permissions", "current_status": "partial", "target_status": "verified", "priority": "P0", "dependencies": [], "implementation_files": ["src/permissions"], "risk": "side-effect bypass", "verification": "negative permission E2E", "evidence": []}
+  ]
+}

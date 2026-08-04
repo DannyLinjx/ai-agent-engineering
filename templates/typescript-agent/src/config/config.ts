@@ -1,0 +1,2 @@
+export interface RuntimeConfig { maxSteps: number; maxReplans: number; taskTimeoutMs: number; toolTimeoutMs: number; tokenBudget: number; costBudgetUsd: number; maxRepeatedActions: number; }
+export const validateConfig = (value: RuntimeConfig): RuntimeConfig => { if (value.maxSteps < 1 || value.taskTimeoutMs < 1 || value.tokenBudget < 1 || value.costBudgetUsd < 0) throw new Error("invalid runtime config"); return Object.freeze({ ...value }); };

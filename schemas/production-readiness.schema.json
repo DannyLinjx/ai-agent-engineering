@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProductionReadinessReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "project", "revision", "generated_at", "owner", "gates", "decision", "known_limitations", "rollback"],
+  "properties": {
+    "version": {"type": "string"}, "project": {"type": "string"}, "revision": {"type": "string"},
+    "generated_at": {"type": "string", "format": "date-time"}, "owner": {"type": "string"},
+    "gates": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "status", "evidence", "owner"], "properties": {"id": {"type": "string"}, "status": {"enum": ["pass", "fail", "blocked", "not_applicable"]}, "evidence": {"type": "array", "items": {"type": "string"}}, "owner": {"type": "string"}, "notes": {"type": "string"}}}},
+    "decision": {"enum": ["go", "no_go", "conditional"]}, "known_limitations": {"type": "array", "items": {"type": "string"}},
+    "rollback": {"type": "object", "required": ["trigger", "procedure", "owner"], "properties": {"trigger": {"type": "string"}, "procedure": {"type": "string"}, "owner": {"type": "string"}}}
+  }
+}

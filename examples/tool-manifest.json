@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "tools": [
+    {"name": "read_file", "version": "1.0", "description": "Read a bounded file inside the authorized workspace", "input_schema": {"type": "object", "required": ["path"], "properties": {"path": {"type": "string"}}}, "category": "read", "risk_level": "low", "side_effects": [], "reversible": true, "idempotency": "idempotent", "timeout_seconds": 10, "max_output_bytes": 12000, "required_scopes": ["workspace:read"], "tests": ["workspace read", "sensitive deny", "symlink escape deny", "output cap"]},
+    {"name": "apply_patch", "version": "1.0", "description": "Apply a reviewable patch inside the authorized workspace", "input_schema": {"type": "object", "required": ["patch"], "properties": {"patch": {"type": "string"}}}, "category": "write", "risk_level": "medium", "side_effects": ["workspace files change"], "reversible": true, "idempotency": "keyed", "timeout_seconds": 30, "max_output_bytes": 8000, "required_scopes": ["workspace:write"], "tests": ["valid patch", "outside path deny", "duplicate key", "rollback"]}
+  ]
+}

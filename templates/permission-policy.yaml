@@ -1,0 +1,27 @@
+version: "1.0"
+default_decision: "ask"
+hard_deny:
+  path_patterns: ["**/.env", "**/.ssh/**", "**/*credential*", "/etc/**"]
+  command_patterns: ["rm -rf /", "git push --force", "DROP DATABASE"]
+rules:
+  - id: "workspace-read"
+    effect: "allow"
+    categories: ["read"]
+    workspace_only: true
+    risk_levels: ["low"]
+  - id: "safe-workspace-write"
+    effect: "ask"
+    categories: ["write"]
+    workspace_only: true
+    reversible: true
+  - id: "external-or-destructive"
+    effect: "ask"
+    categories: ["exec", "network", "database", "browser", "communication"]
+    risk_levels: ["high", "critical"]
+approval:
+  timeout_seconds: 900
+  bind_to_normalized_arguments: true
+  require_risk_and_rollback: true
+redaction:
+  enabled: true
+  secret_name_patterns: ["token", "password", "secret", "cookie", "authorization"]

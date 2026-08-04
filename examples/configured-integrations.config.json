@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "profile": "production",
+  "channels": {
+    "selection": "configured",
+    "default": "feishu-main",
+    "adapters": [
+      {"id": "feishu-main", "type": "feishu", "enabled": true, "required": false, "credential_refs": {"app_id": "secret://agent/channels/feishu-main/app_id", "app_secret": "secret://agent/channels/feishu-main/app_secret", "verification_token": "secret://agent/channels/feishu-main/verification_token"}, "settings": {"event_mode": "webhook"}},
+      {"id": "wecom-main", "type": "wecom", "enabled": true, "required": false, "credential_refs": {"corp_id": "secret://agent/channels/wecom-main/corp_id", "app_secret": "secret://agent/channels/wecom-main/app_secret", "callback_token": "secret://agent/channels/wecom-main/callback_token", "encoding_aes_key": "secret://agent/channels/wecom-main/encoding_aes_key"}, "settings": {"event_mode": "webhook", "agent_id": "SET_ME"}}
+    ]
+  },
+  "model_providers": {
+    "selection": "configured",
+    "default": "openai-main",
+    "fallback_order": ["openai-main", "ollama-local"],
+    "providers": [
+      {"id": "openai-main", "type": "openai", "enabled": true, "required": true, "credential_refs": {"api_key": "secret://agent/models/openai-main/api_key"}, "settings": {"model": "SET_ME"}},
+      {"id": "ollama-local", "type": "ollama", "enabled": true, "required": false, "credential_refs": {}, "settings": {"model": "SET_ME", "base_url": "http://127.0.0.1:11434"}}
+    ]
+  },
+  "mcp": {
+    "selection": "configured",
+    "servers": [
+      {"id": "github", "transport": "stdio", "enabled": true, "required": false, "credential_refs": {"token": "secret://agent/mcp/github/token"}, "settings": {"command": "SET_ME", "args": []}}
+    ]
+  },
+  "test_policy": {"unconfigured_optional": "skip", "require_live_model_for_profiles": ["production"], "fail_on_skipped_required": true}
+}

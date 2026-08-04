@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentTraceEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["timestamp", "event_id", "event_type", "tenant_id", "user_id", "session_id", "run_id", "agent_id", "component", "status", "data"],
+  "properties": {
+    "timestamp": {"type": "string", "format": "date-time"}, "event_id": {"type": "string"},
+    "event_type": {"type": "string"}, "tenant_id": {"type": "string"}, "user_id": {"type": "string"},
+    "session_id": {"type": "string"}, "run_id": {"type": "string"}, "agent_id": {"type": "string"},
+    "parent_event_id": {"type": ["string", "null"]}, "component": {"type": "string"},
+    "status": {"enum": ["started", "succeeded", "failed", "cancelled", "denied", "waiting"]},
+    "duration_ms": {"type": "number", "minimum": 0}, "data": {"type": "object"},
+    "config_fingerprint": {"type": "string"}, "eval_case_id": {"type": "string"}
+  }
+}

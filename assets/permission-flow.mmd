@@ -1,0 +1,13 @@
+flowchart TD
+  A["Tool request + actual parameters + principal"] --> B["Schema and scope validation"]
+  B --> C["Hazard classification"]
+  C --> D{"Hard deny?"}
+  D -->|yes| X["DENY + audit"]
+  D -->|no| E["Allow rules"]
+  E --> F["Workspace and tenant policy"]
+  F --> G["User and run policy"]
+  G --> H{"Decision"}
+  H -->|allow| Y["ALLOW + receipt"]
+  H -->|ask| I["Scoped approval preview"]
+  I -->|approved and unchanged| Y
+  I -->|rejected/expired/changed| X

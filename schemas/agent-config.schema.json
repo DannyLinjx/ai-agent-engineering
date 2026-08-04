@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/ai-agent-engineering/agent-config.schema.json",
+  "title": "AgentConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "agent", "runtime", "context", "permissions", "integrations", "storage", "telemetry"],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "agent": {
+      "type": "object", "additionalProperties": false, "required": ["id", "name", "mode"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"},
+        "name": {"type": "string", "minLength": 1},
+        "mode": {"enum": ["assistant", "tool-agent", "durable-agent", "extensible-agent", "production-platform"]},
+        "instructions_file": {"type": "string"}
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["max_steps", "max_replans", "task_timeout_seconds", "tool_timeout_seconds", "max_consecutive_failures", "max_repeated_actions", "token_budget", "cost_budget_usd"],
+      "properties": {
+        "max_steps": {"type": "integer", "minimum": 1},
+        "max_replans": {"type": "integer", "minimum": 0},
+        "task_timeout_seconds": {"type": "integer", "minimum": 1},
+        "tool_timeout_seconds": {"type": "integer", "minimum": 1},
+        "max_consecutive_failures": {"type": "integer", "minimum": 1},
+        "max_repeated_actions": {"type": "integer", "minimum": 1},
+        "token_budget": {"type": "integer", "minimum": 1},
+        "cost_budget_usd": {"type": "number", "minimum": 0},
+        "checkpoint_after_tool": {"type": "boolean"}
+      }
+    },
+    "context": {
+      "type": "object", "additionalProperties": false, "required": ["max_input_tokens", "reserved_output_tokens", "tool_output_artifact_bytes"],
+      "properties": {
+        "max_input_tokens": {"type": "integer", "minimum": 1},
+        "reserved_output_tokens": {"type": "integer", "minimum": 1},
+        "tool_output_artifact_bytes": {"type": "integer", "minimum": 1},
+        "compaction_trigger_ratio": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+      }
+    },
+    "permissions": {
+      "type": "object", "additionalProperties": false, "required": ["default", "policy_file", "approval_timeout_seconds"],
+      "properties": {
+        "default": {"enum": ["deny", "ask"]},
+        "policy_file": {"type": "string"},
+        "approval_timeout_seconds": {"type": "integer", "minimum": 1}
+      }
+    },
+    "integrations": {
+      "type": "object", "additionalProperties": false, "required": ["config_file", "allow_unconfigured_optional"],
+      "properties": {
+        "config_file": {"type": "string", "minLength": 1},
+        "allow_unconfigured_optional": {"const": true}
+      }
+    },
+    "tools": {"type": "object", "properties": {"manifest": {"type": "string"}, "allow": {"type": "array", "items": {"type": "string"}}}},
+    "skills": {"type": "object", "properties": {"roots": {"type": "array", "items": {"type": "string"}}, "lazy": {"type": "boolean"}}},
+    "memory": {"type": "object", "properties": {"enabled": {"type": "boolean"}, "require_consent": {"type": "boolean"}, "retention_days": {"type": "integer", "minimum": 0}}},
+    "storage": {"type": "object", "required": ["url", "artifact_root"], "properties": {"url": {"type": "string"}, "artifact_root": {"type": "string"}}},
+    "telemetry": {"type": "object", "required": ["redact_secrets", "audit_enabled"], "properties": {"redact_secrets": {"const": true}, "audit_enabled": {"type": "boolean"}, "service_name": {"type": "string"}}}
+  }
+}

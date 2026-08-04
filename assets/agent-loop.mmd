@@ -1,0 +1,20 @@
+flowchart TD
+  A["Load or initialize state"] --> B{"Cancel, deadline, budget, repeat, progress checks"}
+  B -->|stop| Z["Persist terminal state"]
+  B -->|continue| C["Build measured context"]
+  C --> D["Route and call model"]
+  D --> E{"Typed decision"}
+  E -->|tool| F["Validate and authorize"]
+  F -->|deny| H["Record evidence and replan/fail"]
+  F -->|ask| G["Wait for scoped approval"]
+  G -->|approved| I["Execute bounded tool"]
+  G -->|rejected/expired| H
+  F -->|allow| I
+  I --> J["Validate, redact, offload result"]
+  J --> K["Update state and checkpoint"]
+  K --> B
+  E -->|replan| K
+  E -->|candidate response| L["Verify completion criteria"]
+  L -->|pass| Z
+  L -->|fail and budget remains| K
+  L -->|fail| Z

@@ -1,0 +1,2 @@
+export interface SkillDescriptor { name: string; description: string; root: string; trust: "system" | "tenant" | "user" | "project"; }
+export class SkillLoader { constructor(private readonly catalog: SkillDescriptor[]) {} select(query: string, limit = 3): SkillDescriptor[] { const terms = query.toLowerCase().split(/\s+/); return this.catalog.filter(s => terms.some(t => s.description.toLowerCase().includes(t))).slice(0, limit); } }

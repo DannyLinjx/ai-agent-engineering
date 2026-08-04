@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ToolManifest",
+  "type": "object",
+  "required": ["version", "tools"],
+  "properties": {
+    "version": {"type": "string"},
+    "tools": {"type": "array", "items": {"$ref": "#/$defs/tool"}}
+  },
+  "$defs": {
+    "tool": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "version", "description", "input_schema", "category", "risk_level", "side_effects", "reversible", "idempotency", "timeout_seconds", "max_output_bytes", "required_scopes", "tests"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$"}, "version": {"type": "string"},
+        "description": {"type": "string", "minLength": 8}, "input_schema": {"type": "object"}, "output_schema": {"type": "object"},
+        "category": {"enum": ["read", "write", "exec", "network", "database", "browser", "communication"]},
+        "risk_level": {"enum": ["low", "medium", "high", "critical"]},
+        "side_effects": {"type": "array", "items": {"type": "string"}}, "reversible": {"type": "boolean"},
+        "idempotency": {"enum": ["idempotent", "keyed", "non_idempotent"]},
+        "timeout_seconds": {"type": "integer", "minimum": 1}, "max_output_bytes": {"type": "integer", "minimum": 1},
+        "required_scopes": {"type": "array", "items": {"type": "string"}},
+        "secret_refs": {"type": "array", "items": {"type": "string"}}, "tests": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "deprecated": {"type": "boolean"}
+      }
+    }
+  }
+}

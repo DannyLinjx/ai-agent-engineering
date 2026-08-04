@@ -1,0 +1,3 @@
+export interface ModelProfile { id: string; supportsTools: boolean; supportsJson: boolean; privacy: "local" | "cloud"; maxContextTokens: number; costTier: number; healthy: boolean; }
+export interface ModelRequirements { tools: boolean; json: boolean; privateData: boolean; inputTokens: number; }
+export class ModelRouter { constructor(private readonly profiles: ModelProfile[]) {} select(req: ModelRequirements): ModelProfile { const candidates = this.profiles.filter(p => p.healthy && (!req.tools || p.supportsTools) && (!req.json || p.supportsJson) && (!req.privateData || p.privacy === "local") && p.maxContextTokens >= req.inputTokens).sort((a, b) => a.costTier - b.costTier); if (!candidates[0]) throw new Error("No compatible model"); return candidates[0]; } }

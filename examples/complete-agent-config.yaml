@@ -1,0 +1,34 @@
+version: "1.0"
+agent:
+  id: "engineering-agent"
+  name: "Engineering Agent"
+  mode: "production-platform"
+runtime:
+  max_steps: 30
+  max_replans: 4
+  task_timeout_seconds: 1200
+  tool_timeout_seconds: 90
+  max_consecutive_failures: 3
+  max_repeated_actions: 2
+  token_budget: 120000
+  cost_budget_usd: 8.0
+  checkpoint_after_tool: true
+context:
+  max_input_tokens: 64000
+  reserved_output_tokens: 4096
+  tool_output_artifact_bytes: 12000
+  compaction_trigger_ratio: 0.8
+permissions:
+  default: "ask"
+  policy_file: "config/permission-policy.yaml"
+  approval_timeout_seconds: 900
+integrations:
+  config_file: "config/integrations.config.json"
+  allow_unconfigured_optional: true
+tools:
+  manifest: "config/tool-manifest.json"
+  allow: ["read_file", "search_files", "apply_patch", "exec_command", "run_tests"]
+skills: {roots: ["skills"], lazy: true}
+memory: {enabled: true, require_consent: true, retention_days: 90}
+storage: {url: "sqlite:///data/agent.db", artifact_root: ".artifacts"}
+telemetry: {redact_secrets: true, audit_enabled: true, service_name: "engineering-agent"}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/ai-agent-engineering/integration-config.schema.json",
+  "title": "OptionalIntegrationConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "profile", "channels", "model_providers", "mcp", "test_policy"],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "profile": {"enum": ["development", "test", "production"]},
+    "channels": {
+      "type": "object", "additionalProperties": false, "required": ["selection", "default", "adapters"],
+      "properties": {
+        "selection": {"enum": ["none", "configured"]},
+        "default": {"type": ["string", "null"]},
+        "adapters": {"type": "array", "items": {"$ref": "#/$defs/channel"}}
+      }
+    },
+    "model_providers": {
+      "type": "object", "additionalProperties": false, "required": ["selection", "default", "fallback_order", "providers"],
+      "properties": {
+        "selection": {"enum": ["mock", "none", "auto", "configured"]},
+        "default": {"type": ["string", "null"]},
+        "fallback_order": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "providers": {"type": "array", "items": {"$ref": "#/$defs/provider"}}
+      }
+    },
+    "mcp": {
+      "type": "object", "additionalProperties": false, "required": ["selection", "servers"],
+      "properties": {
+        "selection": {"enum": ["none", "configured"]},
+        "servers": {"type": "array", "items": {"$ref": "#/$defs/mcp_server"}}
+      }
+    },
+    "test_policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["unconfigured_optional", "require_live_model_for_profiles", "fail_on_skipped_required"],
+      "properties": {
+        "unconfigured_optional": {"const": "skip"},
+        "require_live_model_for_profiles": {"type": "array", "items": {"enum": ["production"]}, "uniqueItems": true},
+        "fail_on_skipped_required": {"const": true}
+      }
+    }
+  },
+  "$defs": {
+    "credential_refs": {
+      "type": "object", "additionalProperties": {"type": "string", "pattern": "^(secret|env|vault)://.+"}
+    },
+    "channel": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "enabled", "required", "credential_refs", "settings"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$"},
+        "type": {"enum": ["cli", "web", "api", "webhook", "telegram", "feishu", "lark", "wecom", "wechat_official_account", "slack", "discord", "microsoft_teams", "email"]},
+        "enabled": {"type": "boolean"}, "required": {"type": "boolean"},
+        "credential_refs": {"$ref": "#/$defs/credential_refs"}, "settings": {"type": "object"}
+      }
+    },
+    "provider": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "enabled", "required", "credential_refs", "settings"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$"},
+        "type": {"enum": ["mock", "openai", "azure_openai", "anthropic", "google", "openrouter", "ollama", "vllm", "bedrock", "vertex_ai", "custom_openai_compatible"]},
+        "enabled": {"type": "boolean"}, "required": {"type": "boolean"},
+        "credential_refs": {"$ref": "#/$defs/credential_refs"}, "settings": {"type": "object"}
+      }
+    },
+    "mcp_server": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "transport", "enabled", "required", "credential_refs", "settings"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$"},
+        "transport": {"enum": ["stdio", "streamable_http", "sse"]},
+        "enabled": {"type": "boolean"}, "required": {"type": "boolean"},
+        "credential_refs": {"$ref": "#/$defs/credential_refs"}, "settings": {"type": "object"}
+      }
+    }
+  }
+}

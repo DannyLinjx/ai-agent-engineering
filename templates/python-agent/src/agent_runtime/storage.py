@@ -1,0 +1,9 @@
+from typing import Protocol
+from .contracts import AgentState
+
+class StateRepository(Protocol):
+    def save(self, state: AgentState, expected_version: int | None = None) -> int: ...
+    def load(self, tenant_id: str, user_id: str, run_id: str) -> AgentState | None: ...
+
+class ArtifactRepository(Protocol):
+    def put(self, tenant_id: str, user_id: str, artifact_id: str, content: bytes, content_type: str) -> tuple[str, str]: ...

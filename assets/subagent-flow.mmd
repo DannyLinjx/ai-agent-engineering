@@ -1,0 +1,9 @@
+flowchart LR
+  P["Parent plan"] --> D["Dependency DAG"]
+  D --> A["Research task\nscoped tools + budget"]
+  D --> B["Coding task\nscoped tools + budget"]
+  A --> R["Structured results + evidence + artifacts"]
+  B --> R
+  R --> C{"Conflicts or unmet criteria?"}
+  C -->|yes| P
+  C -->|no| V["Parent verifier"]

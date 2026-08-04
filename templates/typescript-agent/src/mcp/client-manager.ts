@@ -1,0 +1,4 @@
+export interface McpToolDescriptor { server: string; name: string; schema: Record<string, unknown>; }
+export interface McpConnection { health(): Promise<boolean>; listTools(): Promise<McpToolDescriptor[]>; close(): Promise<void>; }
+export interface McpConnector { connect(server: string, signal: AbortSignal): Promise<McpConnection>; }
+export class McpClientManager { constructor(readonly selection: "none" | "configured", private readonly connector: McpConnector, private readonly allowedServers: Set<string>) {} isEnabled(): boolean { return this.selection === "configured"; } async connect(server: string, signal: AbortSignal): Promise<McpConnection> { if (!this.isEnabled()) throw new Error("MCP is not configured"); if (!this.allowedServers.has(server)) throw new Error("MCP server is not allowed"); return this.connector.connect(server, signal); } }

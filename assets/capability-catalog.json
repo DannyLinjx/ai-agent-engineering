@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "capabilities": [
+    "runtime", "planner", "tools", "skills", "context", "session", "checkpoint",
+    "memory", "permissions", "hooks", "channels", "subagents", "mcp", "model-providers", "model-routing",
+    "verification", "observability", "multi-user-isolation", "security", "evaluation", "operations"
+  ],
+  "statuses": ["absent", "partial", "implemented", "verified", "not_applicable"],
+  "priorities": ["P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10"]
+}

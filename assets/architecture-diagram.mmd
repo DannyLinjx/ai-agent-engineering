@@ -1,0 +1,20 @@
+flowchart TB
+  I["Optional interface adapters\nCLI · Web · API · Telegram · Feishu · WeCom · Slack"] --> S["Identity · Tenant · Session · Workspace"]
+  S --> O["Agent orchestrator\nIntent · Plan · State · Budgets"]
+  O --> C["Context builder"]
+  O --> M["Memory manager"]
+  O --> K["Skill selector"]
+  C --> Q["Model query engine"]
+  M --> C
+  K --> C
+  Q --> D{"Typed decision"}
+  D -->|tool| P["Permission engine · Hooks"]
+  D -->|respond| V["Verifier · Evaluator"]
+  P --> T["Tool registry · Executor"]
+  T --> X["Files · Shell · Browser · DB · MCP · Apps"]
+  T --> O
+  V -->|pass| R["Response"]
+  V -->|fail and budget remains| O
+  O -.-> DB["Sessions · Checkpoints · Artifacts"]
+  O -.-> TEL["Audit · Traces · Metrics · Cost"]
+  O -.-> SUB["Bounded subagents"]

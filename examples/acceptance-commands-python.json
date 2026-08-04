@@ -1,0 +1,6 @@
+{
+  "commands": [
+    {"id": "compile", "argv": ["{python}", "-m", "compileall", "-q", "src", "tests"], "timeout_seconds": 30, "required": true},
+    {"id": "unit", "argv": ["{python}", "-m", "unittest", "discover", "-s", "tests"], "env": {"PYTHONPATH": "src"}, "timeout_seconds": 30, "required": true}
+  ]
+}

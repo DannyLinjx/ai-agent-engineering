@@ -1,0 +1,2 @@
+export interface SubAgentTask { id: string; objective: string; nonGoals: string[]; inputArtifacts: string[]; completionCriteria: string[]; maxSteps: number; maxTokens: number; maxCostUsd: number; deadlineMs: number; allowedTools: string[]; allowedSkills: string[]; workspace: string; }
+export interface SubAgentResult { taskId: string; status: "success" | "partial" | "failed"; summary: string; findings: string[]; artifacts: string[]; evidence: string[]; unresolvedIssues: string[]; recommendedNextActions: string[]; usedTokens: number; estimatedCostUsd: number; }

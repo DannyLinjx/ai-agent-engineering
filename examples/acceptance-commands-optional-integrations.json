@@ -1,0 +1,9 @@
+{
+  "commands": [
+    {"id": "core-unit", "argv": ["{python}", "-m", "unittest", "discover", "-s", "tests"], "env": {"PYTHONPATH": "src"}, "timeout_seconds": 30, "required": true},
+    {"id": "live-model-smoke", "enabled": false, "required": false, "skip_reason": "No live Model Provider selected; mock model covers core tests"},
+    {"id": "channel-feishu", "enabled": false, "required": false, "skip_reason": "Feishu channel is not selected"},
+    {"id": "channel-wecom", "enabled": false, "required": false, "skip_reason": "WeCom channel is not selected"},
+    {"id": "mcp-github", "enabled": false, "required": false, "skip_reason": "GitHub MCP server is not selected"}
+  ]
+}

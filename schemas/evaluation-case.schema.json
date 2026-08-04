@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvaluationCase",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "task", "setup", "allowed_actions", "forbidden_actions", "assertions", "budgets", "tags"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"}, "version": {"type": "string"},
+    "task": {"type": "string", "minLength": 1}, "setup": {"type": "object"},
+    "allowed_actions": {"type": "array", "items": {"type": "string"}}, "forbidden_actions": {"type": "array", "items": {"type": "string"}},
+    "assertions": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["type", "expected"], "properties": {"type": {"type": "string"}, "target": {"type": "string"}, "expected": {}, "threshold": {"type": "number"}}}},
+    "budgets": {"type": "object", "required": ["max_steps", "max_tokens", "max_cost_usd", "timeout_seconds"], "properties": {"max_steps": {"type": "integer", "minimum": 1}, "max_tokens": {"type": "integer", "minimum": 1}, "max_cost_usd": {"type": "number", "minimum": 0}, "timeout_seconds": {"type": "integer", "minimum": 1}}},
+    "cleanup": {"type": "array", "items": {"type": "string"}}, "tags": {"type": "array", "items": {"type": "string"}}
+  }
+}
