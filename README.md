@@ -690,4 +690,4 @@ python3 -m unittest discover -s tests -v
 
 ## 许可证
 
-本 Skill 包当前未在 `SKILL.md` 中声明许可证（frontmatter 中没有 `license` 字段）。发布到 GitHub 前，请按你的开源偏好补充许可证并添加 `LICENSE` 文件；默认的 MIT、Apache-2.0 或 CC-BY-4.0 均可，取决于你对脚本代码与文档的分发意愿。
+本 Skill 以 [MIT License](./LICENSE) 发布，Copyright (c) 2026 DannyJ。许可证全文见仓库根目录的 `LICENSE` 文件。

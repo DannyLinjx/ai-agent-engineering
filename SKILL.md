@@ -2,6 +2,7 @@
 name: ai-agent-engineering
 description: Design, build, refactor, debug, extend, test, audit, document, and productionize complete AI Agent systems and runtimes with optional user-configurable channels, Model Providers, and MCP servers. Use when creating or upgrading Codex-like, OpenClaw-like, coding, research, RAG, data, office, computer-control, or multi-agent products; when adding tool calling, bounded agent loops, planning, context, memory, sessions/checkpoints, skills, hooks, permissions and approvals, Telegram, Feishu/Lark, WeCom/企业微信, Slack or other channels, subagents, MCP, model routing, verification/evals, observability, multi-user isolation, deployment, or recovery; and when converting a chatbot or one-shot LLM call into a safe, durable, testable agent.
 ---
+license: MIT
 
 # AI Agent Engineering
 
