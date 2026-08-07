@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -28,12 +29,27 @@ class SkillScriptTests(unittest.TestCase):
         output = run_script("validate_skill_structure.py", "--skill", str(ROOT), "--json").stdout
         self.assertEqual(json.loads(output)["status"], "passed")
 
+    def test_structure_validator_treats_host_metadata_as_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            skill = Path(tmp) / "ai-agent-engineering"
+            shutil.copytree(ROOT, skill, ignore=shutil.ignore_patterns(".git", ".DS_Store", "__pycache__"))
+            (skill / "agents/openai.yaml").unlink()
+            output = json.loads(run_script("validate_skill_structure.py", "--skill", str(skill), "--json").stdout)
+            self.assertEqual(output["core_status"], "passed")
+            self.assertEqual(output["optional_host_adapters"]["agents/openai.yaml"], "missing")
+            self.assertTrue(any(item["code"] == "optional-host-adapter" for item in output["warnings"]))
+
     def test_python_scaffold_and_acceptance(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp) / "demo-agent"
             run_script("scaffold_agent_project.py", "--language", "python", "--name", "Demo Agent", "--target", str(project))
             self.assertTrue((project / "src/agent_runtime/runtime.py").is_file())
             self.assertTrue((project / "config/integrations.config.json").is_file())
+            self.assertTrue((project / "config/agent-instructions.md").is_file())
+            self.assertTrue((project / "config/tool-manifest.json").is_file())
+            self.assertTrue((project / "skills").is_dir())
+            self.assertTrue((project / "data").is_dir())
+            self.assertTrue((project / ".artifacts").is_dir())
             integration = json.loads(run_script("validate_integration_config.py", "--config", str(project / "config/integrations.config.json"), "--profile", "development", "--json").stdout)
             self.assertEqual(integration["details"]["selections"], {"channels": "none", "model_providers": "mock", "mcp": "none"})
             architecture = json.loads(run_script("validate_agent_architecture.py", "--project", str(project), "--json").stdout)
@@ -60,6 +76,15 @@ class SkillScriptTests(unittest.TestCase):
             self.assertIn("src/runtime/agent-runtime.ts", output)
             self.assertIn("config/integrations.config.json", output)
             self.assertFalse(target.exists())
+
+    def test_generic_scaffold_is_language_neutral(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "generic-agent"
+            run_script("scaffold_agent_project.py", "--language", "generic", "--name", "Generic Agent", "--target", str(project))
+            self.assertTrue((project / "architecture/module-plan.md").is_file())
+            self.assertTrue((project / "tests/contract-test-plan.md").is_file())
+            self.assertTrue((project / "schemas/agent-state.schema.json").is_file())
+            self.assertFalse((project / "src").exists())
 
     def test_acceptance_runner_rejects_required_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

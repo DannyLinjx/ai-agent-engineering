@@ -10,7 +10,7 @@ from pathlib import Path
 from _common import emit, issue, iter_files, relative, result
 
 REQUIRED = [
-    "SKILL.md", "agents/openai.yaml", "references/workflow.md", "references/architecture.md",
+    "SKILL.md", "references/workflow.md", "references/architecture.md",
     "references/agent-runtime.md", "references/tool-system.md", "references/skill-system.md",
     "references/context-management.md", "references/memory-system.md", "references/permission-system.md",
     "references/hook-system.md", "references/subagent-system.md", "references/mcp-integration.md",
@@ -22,7 +22,9 @@ REQUIRED = [
     "scripts/configure_integrations.py", "scripts/validate_integration_config.py",
     "templates/typescript-agent/package.json", "templates/python-agent/pyproject.toml",
     "templates/tool-template.ts", "templates/tool-template.py", "templates/permission-policy.yaml",
-    "templates/agent-config.yaml", "templates/integrations.config.json", "templates/acceptance-test-plan.md",
+    "templates/agent-config.yaml", "templates/agent-instructions.md", "templates/integrations.config.json",
+    "templates/tool-manifest.json", "templates/acceptance-test-plan.md",
+    "templates/generic-agent/architecture/module-plan.md", "templates/generic-agent/tests/contract-test-plan.md",
     "examples/coding-agent.md", "examples/research-agent.md", "examples/enterprise-rag-agent.md",
     "examples/computer-control-agent.md", "examples/multi-agent-workflow.md",
     "assets/architecture-diagram.mmd", "assets/agent-loop.mmd", "assets/permission-flow.mmd", "assets/subagent-flow.mmd",
@@ -32,6 +34,7 @@ REQUIRED = [
     "templates/typescript-agent/src/channels/channel-adapter.ts", "templates/typescript-agent/src/models/provider-registry.ts",
     "templates/python-agent/src/agent_runtime/channels.py", "templates/python-agent/src/agent_runtime/providers.py"
 ]
+OPTIONAL_HOST_ADAPTERS = ("agents/openai.yaml",)
 LINK = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 
 def check_frontmatter(path: Path, issues: list[dict]) -> None:
@@ -83,8 +86,18 @@ def main() -> int:
         script_count += 1
         try: compile(path.read_text(encoding="utf-8"), str(path), "exec")
         except (SyntaxError, OSError) as exc: issues.append(issue("python-compile", str(exc), path=relative(path, root)))
-        if path.name != "_common.py" and not os.access(path, os.X_OK): issues.append(issue("not-executable", "Script is not executable", severity="warning", path=relative(path, root), hint="chmod +x scripts/*.py"))
-    value = result("validate_skill_structure", root, issues, {"required_files": len(REQUIRED), "json_files": json_count, "jsonl_records": jsonl_count, "python_scripts": script_count})
+        if path.name != "_common.py" and not os.access(path, os.X_OK): issues.append(issue("not-executable", "Script is intended to be invoked with Python", severity="info", path=relative(path, root), hint=f"python {relative(path, root)} --help"))
+    host_adapters = {rel: "present" if (root / rel).is_file() else "missing" for rel in OPTIONAL_HOST_ADAPTERS}
+    for rel, status in host_adapters.items():
+        if status == "missing": issues.append(issue("optional-host-adapter", "Optional host metadata is not installed", severity="warning", path=rel))
+    for directory in (root / "agents", root / "host-adapters"):
+        if directory.is_dir():
+            for path in sorted(item for item in directory.rglob("*") if item.is_file()):
+                host_adapters.setdefault(relative(path, root), "present")
+    value = result("validate_skill_structure", root, issues, {"required_core_files": len(REQUIRED), "json_files": json_count, "jsonl_records": jsonl_count, "python_scripts": script_count})
+    value["core_status"] = value["status"]
+    value["optional_host_adapters"] = host_adapters
+    value["warnings"] = [item for item in issues if item.get("severity") == "warning"]
     emit(value, json_output=args.json)
     return 1 if value["status"] == "failed" else 0
 

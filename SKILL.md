@@ -1,6 +1,6 @@
 ---
 name: ai-agent-engineering
-description: Design, build, refactor, debug, extend, test, audit, document, and productionize complete AI Agent systems and runtimes with optional user-configurable channels, Model Providers, and MCP servers. Use when creating or upgrading Codex-like, OpenClaw-like, coding, research, RAG, data, office, computer-control, or multi-agent products; when adding tool calling, bounded agent loops, planning, context, memory, sessions/checkpoints, skills, hooks, permissions and approvals, Telegram, Feishu/Lark, WeCom/企业微信, Slack or other channels, subagents, MCP, model routing, verification/evals, observability, multi-user isolation, deployment, or recovery; and when converting a chatbot or one-shot LLM call into a safe, durable, testable agent.
+description: Design, build, refactor, debug, extend, test, audit, document, and productionize complete AI Agent systems and runtimes with optional user-configurable channels, Model Providers, and MCP servers. Use when creating or upgrading workspace coding agents, durable tool-using agents, research agents, RAG agents, computer-control agents, or multi-agent systems; when adding tool calling, bounded agent loops, planning, context, memory, sessions/checkpoints, skills, hooks, permissions and approvals, channels, subagents, MCP, model routing, verification/evals, observability, multi-user isolation, deployment, or recovery; and when converting a chatbot or one-shot LLM call into a safe, durable, testable agent.
 ---
 license: MIT
 
@@ -65,6 +65,8 @@ Read `references/architecture.md` before designing or restructuring a runtime. E
 
 Use `assets/architecture-diagram.mmd` and the TypeScript/Python scaffolds as starting points, not as proof of production readiness.
 
+Treat `agents/*` and `host-adapters/*` as optional host metadata. Their absence must not invalidate the core Skill.
+
 ## Module routing
 
 Load only the references required by the task:
@@ -116,12 +118,17 @@ Stop and escalate on missing authority, irreversibility without rollback, unclea
 
 ## Build and scaffold
 
-Choose the repository's language. For a new project:
+For an existing project, keep its language and framework. Use the Python and TypeScript templates only as architectural references when the repository uses another language; do not migrate languages because of template availability.
+
+For a new project, choose a runnable reference scaffold or the language-neutral `generic` scaffold:
 
 ```bash
 python scripts/scaffold_agent_project.py --language typescript --name "My Agent" --target ./my-agent
 python scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
+python scripts/scaffold_agent_project.py --language generic --name "My Agent" --target ./my-agent
 ```
+
+The `generic` scaffold copies language-neutral schemas, configuration, architecture guidance, and a contract test plan without generating Python or TypeScript source code.
 
 Then copy and complete `templates/agent-charter.md`, `templates/capability-matrix.md`, `templates/threat-model.md`, `templates/agent-config.yaml`, `templates/permission-policy.yaml`, and `templates/acceptance-test-plan.md`. Use `schemas/` as language-neutral configuration/state/tool/eval/trace/readiness contracts. The scaffolds are intentionally minimal: add storage, migrations, telemetry, skills, MCP, and business tools through their interfaces rather than weakening boundaries.
 

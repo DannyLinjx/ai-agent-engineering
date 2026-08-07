@@ -4,7 +4,7 @@ AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范�
 
 本 Skill 遵循一条基本原则：模型只在类型化契约的范围内做出决策，而授权、预算、执行、持久化与验证等关键控制，均由确定性的程序代码完成。据此交付的 Agent 不是单一的脚本或提示词方案，而是可运行、可测试、可审计的增量系统。
 
-本 Skill 适用于创建或升级各类 Agent 产品，包括与 Codex、OpenClaw 同类的编码型 Agent，以及研究、RAG、数据处理、办公自动化、电脑控制与多 Agent 协作等专用型 Agent；也适用于将现有聊天机器人或单次 LLM 调用升级为安全、持久、可测试的完整 Agent 系统。
+本 Skill 适用于创建或升级工作区编码 Agent、持久工具调用 Agent、研究与 RAG Agent、电脑控制 Agent 及多 Agent 系统；也适用于将现有聊天机器人或单次 LLM 调用升级为安全、持久、可测试的完整 Agent 系统。
 
 ## 目录
 
@@ -230,9 +230,10 @@ Channel 适配器、线上 Model Provider 和 MCP 服务器是**独立、用户�
 前提：Python 3.10+（推荐 3.11），脚本仅依赖标准库。
 
 ```bash
-# 1. 用 Python 或 TypeScript 脚手架创建新项目
+# 1. 新项目可选 Python/TypeScript 可执行参考脚手架，或语言中立 generic 脚手架
 python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
 python3 scripts/scaffold_agent_project.py --language typescript --name "My Agent" --target ./my-agent
+python3 scripts/scaffold_agent_project.py --language generic --name "My Agent" --target ./my-agent
 
 # 2. 生成核心版可选集成配置（Channel=MCP=none，模型=mock）
 python3 scripts/configure_integrations.py --output my-agent/config/integrations.config.json
@@ -253,6 +254,8 @@ python3 scripts/run_agent_acceptance_tests.py --project my-agent \
 python3 scripts/validate_skill_structure.py --skill . --json
 ```
 
+现有项目始终保留原语言和框架；Python/TypeScript 模板只作为架构参考，不应成为迁移语言的理由。`generic` 模式只生成语言中立的配置、Schema、模块计划和契约测试计划，不生成 Python/TypeScript 源码。
+
 然后复制并填写以下模板：`templates/agent-charter.md`（Agent 章程）、`templates/capability-matrix.md`（能力矩阵）、`templates/threat-model.md`（威胁模型）、`templates/agent-config.yaml`（运行时配置）、`templates/permission-policy.yaml`（权限策略）、`templates/acceptance-test-plan.md`（验收测试计划）。脚手架刻意保持最小化：存储、迁移、遥测、Skill、MCP 和业务工具都通过接口扩展，而不是削弱边界。
 
 ## 目录结构
@@ -262,7 +265,7 @@ ai-agent-engineering/
 ├── SKILL.md                     # 技能入口：模式、工作流、阶段门禁、验证最低要求
 ├── README.md                    # 本文件
 ├── agents/
-│   └── openai.yaml              # Codex UI 展示名称、简介与默认提示
+│   └── openai.yaml              # 可选 Host UI 元数据；缺失不影响核心 Skill
 ├── assets/
 │   ├── architecture-diagram.mmd # 分层架构图
 │   ├── agent-loop.mmd           # 不可妥协的控制循环图
@@ -281,17 +284,20 @@ ai-agent-engineering/
 │   ├── permission-policy.yaml   # 权限策略模板
 │   ├── acceptance-test-plan.md  # 验收测试计划模板
 │   ├── integrations.config.json # 可选集成配置模板
+│   ├── agent-instructions.md    # 最小安全指令模板
+│   ├── tool-manifest.json       # 默认空工具目录
 │   ├── tool-template.py/.ts     # 工具模板
 │   ├── hook-template.py/.ts     # Hook 模板
 │   ├── subagent-template.py/.ts # 子代理模板
 │   ├── skill-template.md        # Skill 模板
-│   ├── python-agent/            # Python 脚手架
-│   └── typescript-agent/        # TypeScript 脚手架
+│   ├── generic-agent/           # 语言中立模块与契约测试计划
+│   ├── python-agent/            # Python 可执行参考脚手架
+│   └── typescript-agent/        # TypeScript 可执行参考脚手架
 ├── examples/                    # 完整示例：5 种 Agent、配置、trace、评测
 ├── evals/
 │   └── evals.json               # 本 Skill 自身的 9 个评测用例
 └── tests/
-    └── test_scripts.py          # 7 个脚本与脚手架集成测试
+    └── test_scripts.py          # 9 个脚本与脚手架集成测试
 ```
 
 ## 环境要求
@@ -469,7 +475,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 | 脚本 | 用途 |
 | --- | --- |
-| `scaffold_agent_project.py` | 用 Python 或 TypeScript 脚手架创建新 Agent 项目（支持 `--dry-run`） |
+| `scaffold_agent_project.py` | 用 Python、TypeScript 或语言中立 generic 脚手架创建新 Agent 项目（支持 `--dry-run`） |
 | `configure_integrations.py` | 生成可选 Channel / Model Provider / MCP 配置，不收集密钥 |
 | `validate_integration_config.py` | 校验集成配置，按 profile 分类哪些测试应运行或跳过 |
 | `generate_module_manifest.py` | 生成现有项目的确定性模块清单（可带 hash） |
@@ -501,7 +507,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 - `agent-config.yaml`、`permission-policy.yaml`、`integrations.config.json`（可运行配置骨架）；
 - 工具、Hook、子代理的 Python/TypeScript 模板；
 - Skill 模板；
-- Python 与 TypeScript 两套完整脚手架（含架构测试）。
+- Python 与 TypeScript 两套可执行参考脚手架（含架构测试），以及不生成语言代码的 generic 脚手架。
 
 模板是交付物骨架，不是执行证据；没有真实命令、退出码、制品或人工签核时，不能把模板项标记为通过。
 
@@ -679,7 +685,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 python3 -m unittest discover -s tests -v
 ```
 
-测试覆盖：全部 JSON/JSONL 可解析、包结构校验、Python 脚手架生成 + 集成配置校验 + 架构验证 + 安全审计 + 模块清单 + 验收测试（含未配置可选集成的 skip 分类）、TypeScript 脚手架 dry-run。
+测试覆盖：全部 JSON/JSONL 可解析、包结构与可选 Host 元数据校验、Python 脚手架生成 + 配置路径完整性 + 集成配置校验 + 架构验证 + 安全审计 + 模块清单 + 验收测试（含未配置可选集成的 skip 分类）、TypeScript 脚手架 dry-run，以及 generic 语言中立脚手架。
 
 ## 贡献
 
