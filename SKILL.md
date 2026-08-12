@@ -20,6 +20,7 @@ Infer the smallest applicable mode from the request:
 - **EXTEND** — add one bounded tool, skill, hook, MCP server, model, channel, memory behavior, or subagent.
 - **TEST** — create deterministic tests, scenarios, evals, and regression gates.
 - **DOCUMENT** — synchronize architecture, operations, deployment, and user documentation with current code.
+- **FACTORY** — convert enterprise requirements into a governed Agent Blueprint, deterministic Build Recipe, candidate project, evidence bundle, and human release checklist.
 
 For a read-only request, do not mutate code or external systems. For build/change requests, implement and verify the requested outcome. Follow repository instructions and preserve unrelated user changes.
 
@@ -67,12 +68,15 @@ Use `assets/architecture-diagram.mmd` and the TypeScript/Python scaffolds as sta
 
 Treat `agents/*` and `host-adapters/*` as optional host metadata. Their absence must not invalidate the core Skill.
 
+Treat the Agent Factory as a build-time control plane and the generated Agent Runtime as the execution plane. The Factory may generate and verify candidates; it never grants high-risk permissions or deploys production without human approval. Read `references/agent-factory.md` for Factory requests.
+
 ## Module routing
 
 Load only the references required by the task:
 
 | Need | Read |
 |---|---|
+| create an enterprise Agent from a Blueprint; Agent creates Agent | `references/agent-factory.md` |
 | loop, planner, budgets, retry, cancellation, completion | `references/agent-runtime.md` |
 | tool contract, registry, command/path/network safety | `references/tool-system.md` |
 | skill discovery, selection, scopes, scripts | `references/skill-system.md` |
@@ -129,6 +133,15 @@ python scripts/scaffold_agent_project.py --language generic --name "My Agent" --
 ```
 
 The `generic` scaffold copies language-neutral schemas, configuration, architecture guidance, and a contract test plan without generating Python or TypeScript source code.
+
+For a governed Agent Factory flow, plan before applying:
+
+```bash
+python scripts/create_agent_from_blueprint.py --blueprint <blueprint.json> --target <project> --plan <recipe.json>
+python scripts/create_agent_from_blueprint.py --blueprint <blueprint.json> --target <project> --apply --report <report.json>
+```
+
+`--plan` never mutates the target. `--apply` refuses blockers and non-empty targets, generates candidate artifacts, and stops at human release approval.
 
 Then copy and complete `templates/agent-charter.md`, `templates/capability-matrix.md`, `templates/threat-model.md`, `templates/agent-config.yaml`, `templates/permission-policy.yaml`, and `templates/acceptance-test-plan.md`. Use `schemas/` as language-neutral configuration/state/tool/eval/trace/readiness contracts. The scaffolds are intentionally minimal: add storage, migrations, telemetry, skills, MCP, and business tools through their interfaces rather than weakening boundaries.
 

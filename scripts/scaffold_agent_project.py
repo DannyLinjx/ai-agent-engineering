@@ -18,19 +18,12 @@ def slugify(value: str) -> str:
     if not slug: raise ValueError("project name must contain letters or digits")
     return slug
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--language", choices=available_languages(), required=True)
-    parser.add_argument("--name", required=True, help="Human-readable project name")
-    parser.add_argument("--target", type=Path, required=True)
-    parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
-    source = SKILL_ROOT / "templates" / f"{args.language}-agent"
-    target = args.target.expanduser().resolve()
-    if not source.is_dir():
-        print(f"missing scaffold: {source}", file=sys.stderr); return 2
-    if target.exists() and any(target.iterdir()):
-        print(f"target must be absent or empty: {target}", file=sys.stderr); return 2
+def scaffold_project(language: str, name: str, target: Path, *, dry_run: bool = False) -> list[str]:
+    if language not in available_languages(): raise ValueError(f"unsupported language: {language}")
+    source = SKILL_ROOT / "templates" / f"{language}-agent"
+    target = target.expanduser().resolve()
+    if not source.is_dir(): raise ValueError(f"missing scaffold: {source}")
+    if target.exists() and any(target.iterdir()): raise ValueError(f"target must be absent or empty: {target}")
     files = sorted(p.relative_to(source).as_posix() for p in source.rglob("*") if p.is_file())
     shared = {
         "config/agent-config.yaml": SKILL_ROOT / "templates" / "agent-config.yaml",
@@ -41,14 +34,14 @@ def main() -> int:
         "docs/agent-charter.md": SKILL_ROOT / "templates" / "agent-charter.md",
         "docs/acceptance-test-plan.md": SKILL_ROOT / "templates" / "acceptance-test-plan.md",
     }
-    if args.language == "generic":
+    if language == "generic":
         shared.update({f"schemas/{path.name}": path for path in sorted((SKILL_ROOT / "schemas").glob("*.json"))})
     directory_markers = ["skills/.gitkeep", "data/.gitkeep", ".artifacts/.gitkeep"]
-    if args.dry_run:
-        print("\n".join(sorted(files + list(shared) + directory_markers))); return 0
+    generated = sorted(files + list(shared) + directory_markers)
+    if dry_run: return generated
     target.mkdir(parents=True, exist_ok=True)
-    project_slug = slugify(args.name)
-    replacements = {"{{PROJECT_NAME}}": args.name, "{{PROJECT_SLUG}}": project_slug, "{{AGENT_ID}}": project_slug, "{{AGENT_NAME}}": args.name}
+    project_slug = slugify(name)
+    replacements = {"{{PROJECT_NAME}}": name, "{{PROJECT_SLUG}}": project_slug, "{{AGENT_ID}}": project_slug, "{{AGENT_NAME}}": name}
     for rel in files:
         src, dst = source / rel, target / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -68,7 +61,23 @@ def main() -> int:
         dst = target / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.touch()
-    print(f"created {args.language} agent scaffold at {target} ({len(files) + len(shared) + len(directory_markers)} files)")
+    return generated
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--language", choices=available_languages(), required=True)
+    parser.add_argument("--name", required=True, help="Human-readable project name")
+    parser.add_argument("--target", type=Path, required=True)
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    target = args.target.expanduser().resolve()
+    try:
+        generated = scaffold_project(args.language, args.name, target, dry_run=args.dry_run)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr); return 2
+    if args.dry_run:
+        print("\n".join(generated)); return 0
+    print(f"created {args.language} agent scaffold at {target} ({len(generated)} files)")
     print("next: keep optional integrations disabled/mock or configure config/integrations.config.json, then implement business behavior")
     return 0
 

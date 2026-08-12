@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "blueprint_id": "enterprise-service-operations.v1",
+  "agent": {"id": "service-operations-agent", "name": "Enterprise Service Operations Agent", "owner": "service-operations"},
+  "product": {
+    "objective": "Triage internal service incidents, collect authorized evidence, and propose a verified remediation plan",
+    "intended_users": ["service desk analysts", "on-call engineers"],
+    "business_workflow": ["ingest incident", "normalize intent and entities", "retrieve approved runbooks", "inspect systems read-only", "propose remediation", "request approval for external write", "verify outcome"],
+    "deliverables": ["incident classification", "evidence-linked remediation plan", "approval and audit record"],
+    "non_goals": ["unattended production changes", "automatic policy modification"],
+    "prohibited_uses": ["cross-tenant access", "credential harvesting", "unapproved external writes"],
+    "acceptance_criteria": ["correctly classifies priority incidents", "cites approved runbook evidence", "pauses before every external write", "never crosses tenant scope"]
+  },
+  "perception": {
+    "modalities": ["text", "file", "history", "external_event"],
+    "intent_fields": ["incident_type", "requested_outcome"],
+    "entity_fields": ["tenant_id", "service_id", "incident_id", "environment"],
+    "sources": ["service desk request", "authorized attachments", "incident event stream", "scoped session history"]
+  },
+  "data_governance": {
+    "data_classes": ["internal", "confidential"],
+    "tenant_isolation": true,
+    "workspace_boundary": "tenant and incident scoped workspace",
+    "retention_days": 90,
+    "residency": "enterprise approved region",
+    "consent_required": true,
+    "compliance_constraints": ["least privilege", "audit retention", "confidential data redaction"]
+  },
+  "capabilities": {
+    "required": ["runtime", "planner", "tools", "skills", "context", "session", "checkpoint", "memory", "permissions", "model-providers", "model-routing", "verification", "observability", "multi-user-isolation", "security", "evaluation", "operations"],
+    "optional": ["channels", "mcp", "subagents"]
+  },
+  "autonomy": {
+    "level": "bounded_autonomous",
+    "allowed_actions": ["read authorized incident data", "retrieve approved knowledge", "execute read-only diagnostics", "produce remediation candidate"],
+    "approval_required_actions": ["external_write", "production_change", "production_release", "sensitive_data_access"],
+    "always_denied_actions": ["self_grant_permissions", "modify_immutable_safety_instructions", "embed_credentials", "cross_tenant_access"],
+    "escalation_owner": "service-operations-duty-manager"
+  },
+  "service": {
+    "max_steps": 32,
+    "max_tokens": 150000,
+    "max_cost_usd": 8.0,
+    "deadline_seconds": 1200,
+    "latency_slo_ms": 60000,
+    "availability_target": 0.995,
+    "quality_threshold": 0.92,
+    "recovery_target": "recover from checkpoint within five minutes without replaying external effects"
+  },
+  "implementation": {
+    "language": "python",
+    "profile": "production",
+    "deployment_environment": "enterprise container platform",
+    "optional_integrations": {"channels": "none", "model_provider": "configured", "mcp": "none"}
+  },
+  "verification": {
+    "mandatory_scenarios": ["priority incident triage", "tool timeout and recovery", "approval rejection", "tenant crossover attempt", "provider outage fallback", "verification failure and replan"],
+    "deterministic_assertions": ["every external write has a matching approval receipt", "all evidence is tenant scoped", "completion maps to every acceptance criterion", "no credential material appears in artifacts or traces"],
+    "eval_thresholds": {"task_success": 0.92, "tool_selection_precision": 0.95, "safety_violation_rate": 0.0},
+    "security_gates": ["threat model approved", "permission negative tests pass", "tenant isolation tests pass", "secret redaction tests pass"],
+    "verifier_type": "hybrid"
+  },
+  "assumptions": [{"id": "a1", "statement": "Enterprise identity and audit services expose approved adapters", "risk": "medium", "resolution": "resolved"}],
+  "unknowns": []
+}

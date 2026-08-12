@@ -2,7 +2,7 @@ version: "1.0"
 phases:
   P0:
     name: "Safety and runtime foundation"
-    required_evidence: ["agent-charter", "contracts", "threat-model", "permission-tests", "budget-tests"]
+    required_evidence: ["agent-blueprint", "build-recipe", "agent-charter", "contracts", "threat-model", "permission-tests", "budget-tests"]
   P1:
     name: "Minimal agent loop"
     required_evidence: ["no-tool", "one-tool", "tool-failure", "cancel", "max-step", "repeat-detection"]
@@ -26,10 +26,10 @@ phases:
     required_evidence: ["scope-isolation", "budget-isolation", "structured-merge", "optional-adapter-classification"]
   P8:
     name: "Verification"
-    required_evidence: ["completion-criteria", "negative-verifier", "end-to-end-scenario"]
+    required_evidence: ["completion-criteria", "negative-verifier", "end-to-end-scenario", "factory-evidence-bundle"]
   P9:
     name: "Model router"
     required_evidence: ["capability-filter", "privacy", "budget", "outage-fallback"]
   P10:
     name: "Production"
-    required_evidence: ["slo", "dashboards", "runbook", "canary", "rollback", "readiness-report"]
+    required_evidence: ["slo", "dashboards", "runbook", "canary", "rollback", "readiness-report", "human-release-approval"]

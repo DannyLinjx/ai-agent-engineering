@@ -1,7 +1,7 @@
 interface:
   display_name: "AI Agent Engineering"
-  short_description: "Build AI agents with optional channels, models, and MCP"
+  short_description: "Build governed enterprise agents from blueprints"
   brand_color: "#0F766E"
-  default_prompt: "Use $ai-agent-engineering to build a secure AI agent while keeping channels, Model Providers, and MCP user-configurable and optional."
+  default_prompt: "Use $ai-agent-engineering to turn enterprise requirements into a governed Agent Blueprint, candidate implementation, and verification evidence."
 policy:
   allow_implicit_invocation: true

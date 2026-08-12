@@ -1,0 +1,13 @@
+flowchart LR
+  A["Enterprise request and inputs"] --> B["Normalize and clarify"]
+  B --> C["Agent Blueprint"]
+  C --> D["Capability gap and risk analysis"]
+  D --> E["Build Recipe and module selection"]
+  E --> F["Deterministic project generation"]
+  F --> G["Tools, knowledge, model, and policy assembly"]
+  G --> H["Contracts, tests, evals, and evidence"]
+  H --> I{"Safety and readiness gates"}
+  I -->|fail| D
+  I -->|pass| J["Agent candidate and release checklist"]
+  J --> K{"Human approval"}
+  K -->|approved| L["Authorized handoff"]

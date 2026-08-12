@@ -25,9 +25,285 @@ class SkillScriptTests(unittest.TestCase):
             for line in path.read_text(encoding="utf-8").splitlines():
                 if line.strip(): json.loads(line)
 
+    def test_agent_blueprint_contract_and_examples(self) -> None:
+        schema_path = ROOT / "schemas/agent-blueprint.schema.json"
+        template_path = ROOT / "templates/agent-blueprint.json"
+        example_path = ROOT / "examples/enterprise-agent-blueprint.json"
+        self.assertTrue(schema_path.is_file())
+        self.assertTrue(template_path.is_file())
+        self.assertTrue(example_path.is_file())
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        required = set(schema["required"])
+        expected = {
+            "version", "blueprint_id", "agent", "product", "perception", "data_governance",
+            "capabilities", "autonomy", "service", "implementation", "verification", "assumptions", "unknowns",
+        }
+        self.assertEqual(required, expected)
+        for path in (template_path, example_path):
+            value = json.loads(path.read_text(encoding="utf-8"))
+            self.assertTrue(expected.issubset(value))
+            serialized = json.dumps(value, ensure_ascii=False).lower()
+            for credential in ("api_key", "password", "secret", "token"):
+                self.assertNotIn(f'"{credential}"', serialized)
+        template = json.loads(template_path.read_text(encoding="utf-8"))
+        self.assertEqual(template["implementation"]["profile"], "development")
+        self.assertEqual(template["implementation"]["optional_integrations"], {"channels": "none", "model_provider": "mock", "mcp": "none"})
+        example = json.loads(example_path.read_text(encoding="utf-8"))
+        self.assertTrue(example["perception"]["modalities"])
+        self.assertTrue(example["capabilities"]["required"])
+        self.assertTrue(example["autonomy"]["approval_required_actions"])
+        self.assertTrue(example["product"]["acceptance_criteria"])
+        self.assertTrue(example["verification"]["deterministic_assertions"])
+
+    def test_agent_factory_plan_is_deterministic_and_non_mutating(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "enterprise-agent"
+            first = root / "recipe-first.json"
+            second = root / "recipe-second.json"
+            args = ("--blueprint", str(ROOT / "examples/enterprise-agent-blueprint.json"), "--target", str(target))
+            run_script("create_agent_from_blueprint.py", *args, "--plan", str(first))
+            run_script("create_agent_from_blueprint.py", *args, "--plan", str(second))
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            recipe = json.loads(first.read_text(encoding="utf-8"))
+            self.assertEqual(recipe["status"], "planned")
+            self.assertFalse(target.exists())
+            self.assertIn("production_release", recipe["human_approvals"])
+            self.assertEqual(len(recipe["recipe_hash"]), 64)
+            classified = set(recipe["capabilities"]["selected"]) | set(recipe["capabilities"]["planned"]) | set(recipe["capabilities"]["blocked"])
+            blueprint = json.loads((ROOT / "examples/enterprise-agent-blueprint.json").read_text(encoding="utf-8"))
+            self.assertTrue(set(blueprint["capabilities"]["required"]).issubset(classified))
+
+    def test_agent_factory_plan_rejects_output_inside_target(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "planned-agent"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(ROOT / "templates/agent-blueprint.json"),
+                "--target", str(target), "--plan", str(target / "build-recipe.json"),
+                expected=2,
+            )
+            self.assertFalse(target.exists())
+
+    def test_agent_factory_blocks_material_unknown_without_target_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "blocked-blueprint.json"
+            value = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            value["unknowns"].append({"id": "u1", "statement": "Production data authority is unresolved", "risk": "high", "resolution": "open"})
+            blueprint_path.write_text(json.dumps(value), encoding="utf-8")
+            target = root / "blocked-agent"
+            recipe_path = root / "blocked-recipe.json"
+            run_script("create_agent_from_blueprint.py", "--blueprint", str(blueprint_path), "--target", str(target), "--plan", str(recipe_path), expected=1)
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            self.assertEqual(recipe["status"], "blocked")
+            self.assertTrue(any(item["code"] == "material-unknown" for item in recipe["blockers"]))
+            self.assertFalse(target.exists())
+
+    def test_agent_factory_apply_generates_candidate_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "enterprise-agent"
+            report_path = root / "creation-report.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(ROOT / "examples/enterprise-agent-blueprint.json"),
+                "--target", str(target), "--apply", "--report", str(report_path),
+            )
+            self.assertTrue((target / "src/agent_runtime/runtime.py").is_file())
+            for name in ("agent-blueprint.json", "build-recipe.json", "capability-matrix.json", "assembly-manifest.json", "release-checklist.json"):
+                self.assertTrue((target / "factory" / name).is_file(), name)
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report["status"], "awaiting_human_approval")
+            self.assertNotIn("deploy", json.dumps(report).lower())
+            integrations = json.loads((target / "config/integrations.config.json").read_text(encoding="utf-8"))
+            blueprint = json.loads((ROOT / "examples/enterprise-agent-blueprint.json").read_text(encoding="utf-8"))
+            expected_integrations = blueprint["implementation"]["optional_integrations"]
+            self.assertEqual(integrations["profile"], blueprint["implementation"]["profile"])
+            self.assertEqual(integrations["channels"]["selection"], expected_integrations["channels"])
+            self.assertEqual(integrations["model_providers"]["selection"], expected_integrations["model_provider"])
+            self.assertEqual(integrations["mcp"]["selection"], expected_integrations["mcp"])
+            matrix = json.loads((target / "factory/capability-matrix.json").read_text(encoding="utf-8"))
+            required = set(blueprint["capabilities"]["required"])
+            records = {item["capability"]: item for item in matrix["capabilities"]}
+            self.assertTrue(required.issubset(records))
+            self.assertTrue(all(records[name]["status"] in {"implemented", "planned", "blocked"} for name in required))
+            self.assertTrue(all(records[name]["evidence"] for name in required if records[name]["status"] == "implemented"))
+
+    def test_agent_factory_apply_supports_generic_scaffold(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "generic-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["implementation"]["language"] = "generic"
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+            target = root / "generic-agent"
+            run_script("create_agent_from_blueprint.py", "--blueprint", str(blueprint_path), "--target", str(target), "--apply")
+            self.assertTrue((target / "architecture/module-plan.md").is_file())
+            self.assertTrue((target / "schemas/agent-state.schema.json").is_file())
+            self.assertTrue((target / "factory/build-recipe.json").is_file())
+            self.assertFalse((target / "src").exists())
+
+    def test_agent_factory_rejects_non_empty_target_without_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "existing-agent"
+            target.mkdir()
+            sentinel = target / "sentinel.txt"
+            sentinel.write_text("preserve-me", encoding="utf-8")
+            before = sorted(path.name for path in target.iterdir())
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(ROOT / "templates/agent-blueprint.json"),
+                "--target", str(target), "--apply", expected=2,
+            )
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "preserve-me")
+            self.assertEqual(sorted(path.name for path in target.iterdir()), before)
+
+    def test_agent_factory_rejects_inline_credentials_before_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "credential-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["api_key"] = "raw-secret-value"
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+            target = root / "credential-agent"
+            recipe_path = root / "credential-recipe.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(blueprint_path), "--target", str(target),
+                "--plan", str(recipe_path), expected=1,
+            )
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(item["code"] == "inline-credential" for item in recipe["blockers"]))
+            self.assertFalse(target.exists())
+
+    def test_agent_factory_requires_approval_for_external_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "external-write-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["autonomy"]["allowed_actions"].append("write customer reply to external system")
+            blueprint["autonomy"]["approval_required_actions"].remove("external_write")
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+            recipe_path = root / "external-write-recipe.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(blueprint_path), "--target", str(root / "external-write-agent"),
+                "--plan", str(recipe_path), expected=1,
+            )
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(item["code"] == "approval-required" for item in recipe["blockers"]))
+
+    def test_agent_factory_requires_approval_for_chinese_external_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "chinese-external-write-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["autonomy"]["allowed_actions"].append("向外部系统写入客户回复")
+            blueprint["autonomy"]["approval_required_actions"].remove("external_write")
+            blueprint_path.write_text(json.dumps(blueprint, ensure_ascii=False), encoding="utf-8")
+            recipe_path = root / "chinese-external-write-recipe.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(blueprint_path), "--target", str(root / "chinese-external-write-agent"),
+                "--plan", str(recipe_path), expected=1,
+            )
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(item["code"] == "approval-required" for item in recipe["blockers"]))
+
+    def test_agent_factory_rejects_invalid_contract_values(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "invalid-contract-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["agent"]["owner"] = ""
+            blueprint["product"]["objective"] = ""
+            blueprint["perception"]["modalities"] = ["audio"]
+            blueprint["data_governance"]["data_classes"] = ["secret"]
+            blueprint["data_governance"]["tenant_isolation"] = "yes"
+            blueprint["data_governance"]["retention_days"] = -1
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+            target = root / "invalid-contract-agent"
+            recipe_path = root / "invalid-contract-recipe.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(blueprint_path), "--target", str(target),
+                "--plan", str(recipe_path), expected=1,
+            )
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            paths = {item.get("path") for item in recipe["blockers"]}
+            self.assertTrue({
+                "agent.owner", "product.objective", "perception.modalities[0]",
+                "data_governance.data_classes[0]", "data_governance.tenant_isolation",
+                "data_governance.retention_days",
+            }.issubset(paths))
+            self.assertFalse(target.exists())
+
+    def test_agent_factory_malformed_section_returns_blocked_recipe(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "malformed-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["capabilities"] = []
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+            target = root / "malformed-agent"
+            recipe_path = root / "malformed-recipe.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(blueprint_path), "--target", str(target),
+                "--plan", str(recipe_path), expected=1,
+            )
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            self.assertEqual(recipe["status"], "blocked")
+            self.assertTrue(any(item["path"] == "capabilities" for item in recipe["blockers"]))
+            self.assertFalse(target.exists())
+
+    def test_agent_factory_required_capability_must_be_catalogued(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blueprint_path = root / "unknown-capability-blueprint.json"
+            blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
+            blueprint["capabilities"]["required"].append("unregistered-enterprise-system")
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+            recipe_path = root / "unknown-capability-recipe.json"
+            run_script(
+                "create_agent_from_blueprint.py",
+                "--blueprint", str(blueprint_path), "--target", str(root / "unknown-capability-agent"),
+                "--plan", str(recipe_path), expected=1,
+            )
+            recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            self.assertTrue(any(item["code"] == "unknown-capability" for item in recipe["blockers"]))
+
     def test_structure_validator(self) -> None:
         output = run_script("validate_skill_structure.py", "--skill", str(ROOT), "--json").stdout
         self.assertEqual(json.loads(output)["status"], "passed")
+
+    def test_agent_factory_is_routed_and_gated(self) -> None:
+        required_resources = {
+            "references/agent-factory.md", "schemas/agent-blueprint.schema.json", "templates/agent-blueprint.json",
+            "assets/agent-factory-flow.mmd", "scripts/create_agent_from_blueprint.py", "examples/enterprise-agent-blueprint.json",
+        }
+        for rel in required_resources:
+            self.assertTrue((ROOT / rel).is_file(), rel)
+        validator = (ROOT / "scripts/validate_skill_structure.py").read_text(encoding="utf-8")
+        self.assertTrue(all(f'"{rel}"' in validator for rel in required_resources))
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("references/agent-factory.md", skill)
+        self.assertIn("create_agent_from_blueprint.py", skill)
+        self.assertIn("--plan", skill)
+        self.assertIn("--apply", skill)
+        catalog = json.loads((ROOT / "assets/capability-catalog.json").read_text(encoding="utf-8"))
+        self.assertIn("agent-factory", catalog["capabilities"])
+        self.assertIn("perception-input", catalog["capabilities"])
+        phases = (ROOT / "assets/phase-gates.yaml").read_text(encoding="utf-8")
+        self.assertIn("agent-blueprint", phases)
+        self.assertIn("build-recipe", phases)
+        self.assertIn("factory-evidence-bundle", phases)
+        self.assertIn("human-release-approval", phases)
+        evals = json.loads((ROOT / "evals/evals.json").read_text(encoding="utf-8"))
+        factory_case = next(case for case in evals["cases"] if case["id"] == "create-enterprise-agent-factory")
+        expected = set(factory_case["expected"])
+        self.assertTrue({"agent blueprint", "build recipe", "candidate evidence", "human release approval"}.issubset(expected))
 
     def test_structure_validator_treats_host_metadata_as_optional(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

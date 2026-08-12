@@ -51,6 +51,7 @@ AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范�
 | 能力域 | 可以完成的工作 |
 | --- | --- |
 | 设计（DESIGN） | 定义产品范围、架构、契约、威胁模型、数据模型、阶段计划与验收标准 |
+| 工厂（FACTORY） | 把企业需求转换为 Agent Blueprint、确定性 Build Recipe、候选项目、证据映射和人工发布清单 |
 | 构建（BUILD） | 从零搭建可运行的 Agent 增量，先安全后功能，先闭环后扩展 |
 | 重构（REFACTOR） | 把单体 `agent.py`/`agent.ts` 模块化，保持行为不变并通过前后契约测试 |
 | 审计（AUDIT） | 只读检查能力、架构、安全、评测与生产就绪缺口，输出带文件链接的证据 |
@@ -164,6 +165,7 @@ flowchart TD
 | 模式 | 主要产出 | 是否修改 | 必需证据 |
 |---|---|---:|---|
 | DESIGN | 架构、契约、ADR、能力计划 | 否 | 评审过的设计门禁 |
+| FACTORY | Blueprint、Build Recipe、候选 Agent、证据与发布清单 | 是 | 候选门禁 + 人工发布审批 |
 | BUILD | 可运行的 Agent 增量 | 是 | 测试 + 场景 trace |
 | REFACTOR | 行为保持的模块化运行时 | 是 | 前后契约测试 |
 | AUDIT | 缺口、风险与生产就绪报告 | 否 | 带文件链接的发现 |
@@ -230,29 +232,44 @@ Channel 适配器、线上 Model Provider 和 MCP 服务器是**独立、用户�
 前提：Python 3.10+（推荐 3.11），脚本仅依赖标准库。
 
 ```bash
-# 1. 新项目可选 Python/TypeScript 可执行参考脚手架，或语言中立 generic 脚手架
+# 1. 从企业 Blueprint 确定性规划候选（不修改目标目录）
+python3 scripts/create_agent_from_blueprint.py \
+  --blueprint examples/enterprise-agent-blueprint.json \
+  --target ./service-agent \
+  --plan ./build-recipe.json
+
+# 2. 审阅 Recipe 并解决 blockers 后，生成候选项目（不会发布生产）
+python3 scripts/create_agent_from_blueprint.py \
+  --blueprint examples/enterprise-agent-blueprint.json \
+  --target ./service-agent \
+  --apply \
+  --report ./creation-report.json
+
+# 也可以直接创建 Python/TypeScript 可执行参考脚手架，或语言中立 generic 脚手架
 python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
 python3 scripts/scaffold_agent_project.py --language typescript --name "My Agent" --target ./my-agent
 python3 scripts/scaffold_agent_project.py --language generic --name "My Agent" --target ./my-agent
 
-# 2. 生成核心版可选集成配置（Channel=MCP=none，模型=mock）
+# 3. 生成核心版可选集成配置（Channel=MCP=none，模型=mock）
 python3 scripts/configure_integrations.py --output my-agent/config/integrations.config.json
 
-# 3. 校验集成配置并按 profile 判断哪些测试该跑/该跳过
+# 4. 校验集成配置并按 profile 判断哪些测试该跑/该跳过
 python3 scripts/validate_integration_config.py --config my-agent/config/integrations.config.json --profile development --json
 
-# 4. 校验项目架构与安全基线
+# 5. 校验项目架构与安全基线
 python3 scripts/validate_agent_architecture.py --project my-agent --json
 python3 scripts/audit_agent_safety.py --project my-agent --json
 
-# 5. 运行验收测试并产出机器可读证据报告
+# 6. 运行验收测试并产出机器可读证据报告
 python3 scripts/run_agent_acceptance_tests.py --project my-agent \
   --config examples/acceptance-commands-python.json \
   --report my-agent/report.json
 
-# 6. 校验本 Skill 包自身的结构（发布前）
+# 7. 校验本 Skill 包自身的结构（发布前）
 python3 scripts/validate_skill_structure.py --skill . --json
 ```
+
+Factory 是构建期控制面：`--plan` 不写目标目录，`--apply` 拒绝 blockers 和非空目标，只生成候选与待验证证据。生产发布、敏感数据访问和高风险权限始终保留人工审批。
 
 现有项目始终保留原语言和框架；Python/TypeScript 模板只作为架构参考，不应成为迁移语言的理由。`generic` 模式只生成语言中立的配置、Schema、模块计划和契约测试计划，不生成 Python/TypeScript 源码。
 
@@ -271,12 +288,14 @@ ai-agent-engineering/
 │   ├── agent-loop.mmd           # 不可妥协的控制循环图
 │   ├── permission-flow.mmd      # 权限流图
 │   ├── subagent-flow.mmd        # 子代理流程图
-│   ├── capability-catalog.json  # 能力目录（21 项能力、状态、优先级）
+│   ├── agent-factory-flow.mmd   # Blueprint 到候选 Agent 的受控工厂流程
+│   ├── capability-catalog.json  # 能力目录（23 项能力、状态、优先级）
 │   └── phase-gates.yaml         # P0–P10 阶段与必需证据
 ├── references/                  # 20+ 份模块参考（按需读取，见参考资料导航）
-├── schemas/                     # 8 份语言中立契约 schema
-├── scripts/                     # 9 个确定性脚本（仅标准库）
+├── schemas/                     # 9 份语言中立契约 schema（含 Agent Blueprint）
+├── scripts/                     # 10 个确定性脚本（仅标准库）
 ├── templates/
+│   ├── agent-blueprint.json     # 开发安全默认值的 Blueprint 模板
 │   ├── agent-charter.md         # Agent 章程模板
 │   ├── capability-matrix.md     # 能力矩阵模板
 │   ├── threat-model.md          # 威胁模型模板
@@ -293,11 +312,11 @@ ai-agent-engineering/
 │   ├── generic-agent/           # 语言中立模块与契约测试计划
 │   ├── python-agent/            # Python 可执行参考脚手架
 │   └── typescript-agent/        # TypeScript 可执行参考脚手架
-├── examples/                    # 完整示例：5 种 Agent、配置、trace、评测
+├── examples/                    # Agent、企业 Blueprint、配置、trace 与评测示例
 ├── evals/
-│   └── evals.json               # 本 Skill 自身的 9 个评测用例
+│   └── evals.json               # 本 Skill 自身的 10 个评测用例
 └── tests/
-    └── test_scripts.py          # 9 个脚本与脚手架集成测试
+    └── test_scripts.py          # 结构、脚本、安全负例与脚手架集成测试
 ```
 
 ## 环境要求
@@ -413,6 +432,20 @@ YOUR_PROJECT/.agents/skills/ai-agent-engineering/SKILL.md
 
 ## 使用方法
 
+### 从 Blueprint 创建企业 Agent 候选
+
+先从 `templates/agent-blueprint.json` 创建 Blueprint，或参考 `examples/enterprise-agent-blueprint.json`。然后先规划、再应用：
+
+```bash
+python3 scripts/create_agent_from_blueprint.py \
+  --blueprint <blueprint.json> --target <project> --plan <build-recipe.json>
+
+python3 scripts/create_agent_from_blueprint.py \
+  --blueprint <blueprint.json> --target <project> --apply --report <creation-report.json>
+```
+
+详细决策、状态、产物与停止条件见 `references/agent-factory.md`。生成结果是待验证的 Agent 候选，不等于已部署或生产就绪。
+
 ### 从零新建 Agent
 
 ```bash
@@ -475,6 +508,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 | 脚本 | 用途 |
 | --- | --- |
+| `create_agent_from_blueprint.py` | 从治理后的 Blueprint 生成确定性 Recipe 与候选项目；拒绝凭据、重大未知、未审批外部写入和非空目标 |
 | `scaffold_agent_project.py` | 用 Python、TypeScript 或语言中立 generic 脚手架创建新 Agent 项目（支持 `--dry-run`） |
 | `configure_integrations.py` | 生成可选 Channel / Model Provider / MCP 配置，不收集密钥 |
 | `validate_integration_config.py` | 校验集成配置，按 profile 分类哪些测试应运行或跳过 |
@@ -490,6 +524,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 | 文件 | 内容 |
 | --- | --- |
+| `schemas/agent-blueprint.schema.json` / `templates/agent-blueprint.json` | Agent 产品、感知输入、数据治理、能力、自治、服务目标、实现和验证的受治理构建契约 |
 | `templates/agent-config.yaml` | 运行时参数：最大步数、重规划、超时、失败/重复动作阈值、Token/成本预算、上下文 Token 预算、压缩触发比例、权限默认值、工具白名单、Skill 根目录、记忆开关、存储、遥测 |
 | `templates/permission-policy.yaml` | 默认决策、硬拒绝路径/命令、规则表（类别 + 风险等级 + 效果）、审批超时、参数绑定、脱敏规则 |
 | `templates/integrations.config.json` | Channel / Model Provider / MCP 选择、凭据引用、回退顺序、测试策略 |
@@ -503,6 +538,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 `templates/` 提供：
 
+- Agent Blueprint（Factory 的权威输入契约）；
 - Agent 章程、能力矩阵、威胁模型、验收测试计划（先于代码完成）；
 - `agent-config.yaml`、`permission-policy.yaml`、`integrations.config.json`（可运行配置骨架）；
 - 工具、Hook、子代理的 Python/TypeScript 模板；
@@ -517,6 +553,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 | 示例 | 内容 |
 | --- | --- |
+| `enterprise-agent-blueprint.json` | 企业服务运营 Agent Blueprint：多租户、机密数据、可选集成、确定性验证与人工审批 |
 | `coding-agent.md` | 编码 Agent 完整垂直切片：检查项目 → 复现失败 → 诊断 → 最小补丁 → 验证 → diff 审查 |
 | `research-agent.md` | 研究 Agent：有证据的技术对比、来源溯源、claim 级证据、不确定性报告 |
 | `enterprise-rag-agent.md` | 企业 RAG Agent：权威结构化规则验证、租户隔离、缓存键、`indeterminate` 失败模式 |
@@ -535,6 +572,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 | 需要 | 阅读 |
 |---|---|
+| 从企业需求生成 Agent Blueprint、Recipe 和候选；Agent 创建 Agent | `references/agent-factory.md` |
 | 循环、规划器、预算、重试、取消、完成 | `references/agent-runtime.md` |
 | 工具契约、注册表、命令/路径/网络安全 | `references/tool-system.md` |
 | Skill 发现、选择、作用域、脚本 | `references/skill-system.md` |
@@ -594,6 +632,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 - 检查点/重启/回退、重复投递、部分副作用与迁移；
 - 已配置 MCP 故障/schema 投毒、已配置 Channel 规范化/发送/健康、路由/回退/隐私、子代理预算/范围/合并；
 - 双租户越权尝试与缓存/搜索/产物隔离；
+- Factory 的 Blueprint/Recipe 确定性、凭据拒绝、重大未知阻断、外部写入审批和非空目标保护；
 - 确定性验证器的负例 + `examples/` 中的相关示例。
 
 记录命令、退出码、耗时、环境/配置/模型/工具/Skill 版本、用例 ID、指标、阈值与产物路径。生产声明还需要机器可读的就绪门禁与 `references/production-checklist.md` 中的运维证据。

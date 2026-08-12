@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/ai-agent-engineering/agent-blueprint.schema.json",
+  "title": "AgentBlueprint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "blueprint_id", "agent", "product", "perception", "data_governance",
+    "capabilities", "autonomy", "service", "implementation", "verification", "assumptions", "unknowns"
+  ],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "blueprint_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"},
+    "agent": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "owner"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"},
+        "name": {"type": "string", "minLength": 1},
+        "owner": {"type": "string", "minLength": 1}
+      }
+    },
+    "product": {
+      "type": "object", "additionalProperties": false,
+      "required": ["objective", "intended_users", "business_workflow", "deliverables", "non_goals", "prohibited_uses", "acceptance_criteria"],
+      "properties": {
+        "objective": {"type": "string", "minLength": 1},
+        "intended_users": {"$ref": "#/$defs/non_empty_strings"},
+        "business_workflow": {"$ref": "#/$defs/non_empty_strings"},
+        "deliverables": {"$ref": "#/$defs/non_empty_strings"},
+        "non_goals": {"type": "array", "items": {"type": "string"}},
+        "prohibited_uses": {"$ref": "#/$defs/non_empty_strings"},
+        "acceptance_criteria": {"$ref": "#/$defs/non_empty_strings"}
+      }
+    },
+    "perception": {
+      "type": "object", "additionalProperties": false,
+      "required": ["modalities", "intent_fields", "entity_fields", "sources"],
+      "properties": {
+        "modalities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["text", "file", "image", "ocr", "history", "external_event"]}},
+        "intent_fields": {"$ref": "#/$defs/non_empty_strings"},
+        "entity_fields": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "sources": {"$ref": "#/$defs/non_empty_strings"}
+      }
+    },
+    "data_governance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["data_classes", "tenant_isolation", "workspace_boundary", "retention_days", "residency", "consent_required", "compliance_constraints"],
+      "properties": {
+        "data_classes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["public", "internal", "confidential", "restricted"]}},
+        "tenant_isolation": {"type": "boolean"},
+        "workspace_boundary": {"type": "string", "minLength": 1},
+        "retention_days": {"type": "integer", "minimum": 0},
+        "residency": {"type": "string", "minLength": 1},
+        "consent_required": {"type": "boolean"},
+        "compliance_constraints": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "capabilities": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required", "optional"],
+      "properties": {
+        "required": {"$ref": "#/$defs/non_empty_strings"},
+        "optional": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "autonomy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["level", "allowed_actions", "approval_required_actions", "always_denied_actions", "escalation_owner"],
+      "properties": {
+        "level": {"enum": ["assistive", "supervised", "bounded_autonomous"]},
+        "allowed_actions": {"$ref": "#/$defs/non_empty_strings"},
+        "approval_required_actions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "always_denied_actions": {"$ref": "#/$defs/non_empty_strings"},
+        "escalation_owner": {"type": "string", "minLength": 1}
+      }
+    },
+    "service": {
+      "type": "object", "additionalProperties": false,
+      "required": ["max_steps", "max_tokens", "max_cost_usd", "deadline_seconds", "latency_slo_ms", "availability_target", "quality_threshold", "recovery_target"],
+      "properties": {
+        "max_steps": {"type": "integer", "minimum": 1},
+        "max_tokens": {"type": "integer", "minimum": 1},
+        "max_cost_usd": {"type": "number", "minimum": 0},
+        "deadline_seconds": {"type": "integer", "minimum": 1},
+        "latency_slo_ms": {"type": "integer", "minimum": 1},
+        "availability_target": {"type": "number", "minimum": 0, "maximum": 1},
+        "quality_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "recovery_target": {"type": "string", "minLength": 1}
+      }
+    },
+    "implementation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["language", "profile", "deployment_environment", "optional_integrations"],
+      "properties": {
+        "language": {"enum": ["python", "typescript", "generic"]},
+        "profile": {"enum": ["development", "test", "production"]},
+        "deployment_environment": {"type": "string", "minLength": 1},
+        "optional_integrations": {
+          "type": "object", "additionalProperties": false,
+          "required": ["channels", "model_provider", "mcp"],
+          "properties": {
+            "channels": {"enum": ["none", "configured"]},
+            "model_provider": {"enum": ["mock", "none", "auto", "configured"]},
+            "mcp": {"enum": ["none", "configured"]}
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mandatory_scenarios", "deterministic_assertions", "eval_thresholds", "security_gates", "verifier_type"],
+      "properties": {
+        "mandatory_scenarios": {"$ref": "#/$defs/non_empty_strings"},
+        "deterministic_assertions": {"$ref": "#/$defs/non_empty_strings"},
+        "eval_thresholds": {"type": "object", "additionalProperties": {"type": "number"}},
+        "security_gates": {"$ref": "#/$defs/non_empty_strings"},
+        "verifier_type": {"enum": ["deterministic", "hybrid"]}
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/decision_item"}
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/decision_item"}
+    }
+  },
+  "$defs": {
+    "non_empty_strings": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "decision_item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "statement", "risk", "resolution"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "statement": {"type": "string", "minLength": 1},
+        "risk": {"enum": ["low", "medium", "high", "critical"]},
+        "resolution": {"enum": ["assumed", "resolved", "open"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "blueprint_id": "example-agent.v1",
+  "agent": {"id": "example-agent", "name": "Example Agent", "owner": "product-owner"},
+  "product": {
+    "objective": "Complete one bounded business workflow with verified evidence",
+    "intended_users": ["authorized internal users"],
+    "business_workflow": ["receive request", "collect evidence", "produce verified result"],
+    "deliverables": ["verified response", "audit record"],
+    "non_goals": ["automatic production deployment"],
+    "prohibited_uses": ["privilege escalation", "unapproved external writes"],
+    "acceptance_criteria": ["all declared criteria map to deterministic evidence"]
+  },
+  "perception": {
+    "modalities": ["text"],
+    "intent_fields": ["objective"],
+    "entity_fields": ["request_id"],
+    "sources": ["authorized user request"]
+  },
+  "data_governance": {
+    "data_classes": ["internal"],
+    "tenant_isolation": true,
+    "workspace_boundary": "one authorized workspace per run",
+    "retention_days": 30,
+    "residency": "project policy",
+    "consent_required": false,
+    "compliance_constraints": []
+  },
+  "capabilities": {"required": ["runtime", "planner", "permissions", "verification", "security", "evaluation"], "optional": []},
+  "autonomy": {
+    "level": "supervised",
+    "allowed_actions": ["read authorized inputs", "produce candidate artifacts"],
+    "approval_required_actions": ["external_write", "production_release"],
+    "always_denied_actions": ["self_grant_permissions", "embed_credentials"],
+    "escalation_owner": "human-operator"
+  },
+  "service": {
+    "max_steps": 16,
+    "max_tokens": 50000,
+    "max_cost_usd": 2.0,
+    "deadline_seconds": 600,
+    "latency_slo_ms": 30000,
+    "availability_target": 0.99,
+    "quality_threshold": 0.9,
+    "recovery_target": "resume from the latest valid checkpoint"
+  },
+  "implementation": {
+    "language": "python",
+    "profile": "development",
+    "deployment_environment": "local isolated workspace",
+    "optional_integrations": {"channels": "none", "model_provider": "mock", "mcp": "none"}
+  },
+  "verification": {
+    "mandatory_scenarios": ["no-tool completion", "permission denial", "verification failure"],
+    "deterministic_assertions": ["no prohibited action executes", "completion has evidence"],
+    "eval_thresholds": {"task_success": 0.9, "safety_violation_rate": 0.0},
+    "security_gates": ["permission policy", "tenant isolation", "secret redaction"],
+    "verifier_type": "deterministic"
+  },
+  "assumptions": [{"id": "a1", "statement": "Development uses the deterministic mock provider", "risk": "low", "resolution": "assumed"}],
+  "unknowns": []
+}

@@ -11,6 +11,7 @@ from _common import emit, issue, iter_files, relative, result
 
 REQUIRED = [
     "SKILL.md", "references/workflow.md", "references/architecture.md",
+    "references/agent-factory.md",
     "references/agent-runtime.md", "references/tool-system.md", "references/skill-system.md",
     "references/context-management.md", "references/memory-system.md", "references/permission-system.md",
     "references/hook-system.md", "references/subagent-system.md", "references/mcp-integration.md",
@@ -20,17 +21,21 @@ REQUIRED = [
     "scripts/validate_skill_structure.py", "scripts/generate_module_manifest.py",
     "scripts/run_agent_acceptance_tests.py", "scripts/audit_agent_safety.py",
     "scripts/configure_integrations.py", "scripts/validate_integration_config.py",
+    "scripts/create_agent_from_blueprint.py",
     "templates/typescript-agent/package.json", "templates/python-agent/pyproject.toml",
     "templates/tool-template.ts", "templates/tool-template.py", "templates/permission-policy.yaml",
     "templates/agent-config.yaml", "templates/agent-instructions.md", "templates/integrations.config.json",
     "templates/tool-manifest.json", "templates/acceptance-test-plan.md",
+    "templates/agent-blueprint.json",
     "templates/generic-agent/architecture/module-plan.md", "templates/generic-agent/tests/contract-test-plan.md",
     "examples/coding-agent.md", "examples/research-agent.md", "examples/enterprise-rag-agent.md",
     "examples/computer-control-agent.md", "examples/multi-agent-workflow.md",
     "assets/architecture-diagram.mmd", "assets/agent-loop.mmd", "assets/permission-flow.mmd", "assets/subagent-flow.mmd",
+    "assets/agent-factory-flow.mmd",
     "schemas/agent-config.schema.json", "schemas/agent-state.schema.json", "schemas/tool-manifest.schema.json",
+    "schemas/agent-blueprint.schema.json",
     "schemas/evaluation-case.schema.json", "schemas/trace-event.schema.json", "schemas/production-readiness.schema.json",
-    "schemas/integration-config.schema.json",
+    "schemas/integration-config.schema.json", "examples/enterprise-agent-blueprint.json",
     "templates/typescript-agent/src/channels/channel-adapter.ts", "templates/typescript-agent/src/models/provider-registry.ts",
     "templates/python-agent/src/agent_runtime/channels.py", "templates/python-agent/src/agent_runtime/providers.py"
 ]
