@@ -4,6 +4,18 @@
     {
       "source": "README.overlay.md",
       "destination": "docs/browser-experience.md"
+    },
+    {
+      "source": "backend/agent_control/__init__.py",
+      "destination": "src/agent_control/__init__.py"
+    },
+    {
+      "source": "backend/agent_control/events.py",
+      "destination": "src/agent_control/events.py"
+    },
+    {
+      "source": "backend/tests/test_events.py",
+      "destination": "tests/test_browser_events.py"
     }
   ]
 }
