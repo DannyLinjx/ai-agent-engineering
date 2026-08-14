@@ -1,0 +1,15 @@
+{
+  "profile": "enterprise",
+  "users": 500,
+  "tenant_count": 25,
+  "expected_records": 5000000,
+  "concurrent_writers": 40,
+  "latency_target_ms": 250,
+  "availability_target": 0.995,
+  "semantic_retrieval_required": true,
+  "graph_queries": [],
+  "graph_acceptance_cases": [],
+  "managed_preference": "either",
+  "data_class": "confidential",
+  "engagement": "end_to_end"
+}

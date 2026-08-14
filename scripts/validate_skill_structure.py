@@ -21,7 +21,7 @@ REQUIRED = [
     "scripts/validate_skill_structure.py", "scripts/generate_module_manifest.py",
     "scripts/run_agent_acceptance_tests.py", "scripts/audit_agent_safety.py",
     "scripts/configure_integrations.py", "scripts/validate_integration_config.py",
-    "scripts/create_agent_from_blueprint.py", "scripts/validate_experience_manifest.py",
+    "scripts/create_agent_from_blueprint.py", "scripts/plan_memory_deployment.py", "scripts/validate_experience_manifest.py",
     "scripts/validate_memory_manifest.py",
     "templates/typescript-agent/package.json", "templates/python-agent/pyproject.toml",
     "templates/tool-template.ts", "templates/tool-template.py", "templates/permission-policy.yaml",
@@ -42,6 +42,7 @@ REQUIRED = [
     "schemas/evaluation-case.schema.json", "schemas/trace-event.schema.json", "schemas/production-readiness.schema.json",
     "schemas/integration-config.schema.json", "examples/enterprise-agent-blueprint.json",
     "examples/browser-enterprise-agent-blueprint.json", "examples/local-memory-agent-blueprint.json",
+    "examples/memory-deployment-request.json",
     "templates/typescript-agent/src/channels/channel-adapter.ts", "templates/typescript-agent/src/models/provider-registry.ts",
     "templates/python-agent/src/agent_runtime/channels.py", "templates/python-agent/src/agent_runtime/providers.py"
 ]
