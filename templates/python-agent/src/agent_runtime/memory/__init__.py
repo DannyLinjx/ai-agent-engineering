@@ -10,6 +10,7 @@ from .contracts import (
     MemorySearchResult,
 )
 from .policy import MemoryPolicy
+from .retrieval import MemoryRetriever
 from .sqlite_store import SQLiteMemoryStore
 
 
@@ -43,6 +44,7 @@ __all__ = [
     "MemoryPolicy",
     "MemoryQuery",
     "MemoryRecord",
+    "MemoryRetriever",
     "MemoryScope",
     "MemorySearchResult",
     "SQLiteMemoryStore",

@@ -5,7 +5,14 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from agent_runtime.memory import MemoryPolicy, MemoryRecord, MemoryScope, SQLiteMemoryStore
+from agent_runtime.memory import (
+    MemoryPolicy,
+    MemoryQuery,
+    MemoryRecord,
+    MemoryRetriever,
+    MemoryScope,
+    SQLiteMemoryStore,
+)
 
 
 class RecordFactory:
@@ -94,6 +101,49 @@ class SQLiteMemoryStoreTests(RecordFactory, unittest.TestCase):
             event_types = [event["event_type"] for event in store.pending_index_events()]
             self.assertIn("expired", event_types)
             self.assertIn("deleted", event_types)
+            store.close()
+
+
+class MemoryRetrievalTests(RecordFactory, unittest.TestCase):
+    def test_fts_retrieval_filters_scope_expiry_and_bounds_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            store = SQLiteMemoryStore(Path(tmp) / "memory.db")
+            as_of = datetime(2026, 2, 1, tzinfo=timezone.utc)
+            old = as_of - timedelta(days=30)
+            store.put(
+                self.record(
+                    id="strong-old",
+                    summary="Project Phoenix launch schedule migration details",
+                    content={"project": "Phoenix", "detail": "launch schedule migration"},
+                    created_at=old,
+                    updated_at=old,
+                )
+            )
+            store.put(self.record(id="weak-new", summary="Project Phoenix", updated_at=as_of, created_at=as_of))
+            store.put(self.record(id="unrelated", summary="Unrelated current note", updated_at=as_of, created_at=as_of))
+            store.put(self.record(id="expired", summary="Project Phoenix launch schedule", expires_at=as_of - timedelta(seconds=1)))
+            store.put(
+                self.record(
+                    id="bob-private",
+                    user_id="bob",
+                    summary="Project Phoenix launch schedule",
+                )
+            )
+            retriever = MemoryRetriever(store)
+
+            results = retriever.search(
+                MemoryQuery(
+                    MemoryScope("tenant-a", "alice"),
+                    "project phoenix launch schedule",
+                    limit=2,
+                    as_of=as_of,
+                )
+            )
+
+            self.assertEqual([result.record.id for result in results], ["strong-old", "weak-new"])
+            self.assertTrue(all(result.record.user_id == "alice" for result in results))
+            self.assertTrue(all(result.record.id != "expired" for result in results))
+            self.assertIn("keyword_relevance", results[0].score_components)
             store.close()
 
 

@@ -95,6 +95,15 @@ class SQLiteMemoryStore:
                 created_at TEXT NOT NULL,
                 applied_at TEXT
             );
+            CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
+                record_id UNINDEXED,
+                tenant_id UNINDEXED,
+                user_id UNINDEXED,
+                project_id UNINDEXED,
+                summary,
+                normalized_text,
+                tokenize = 'unicode61'
+            );
             """
         )
         self.connection.execute(
@@ -296,3 +305,25 @@ class SQLiteMemoryStore:
                 (_iso(now or datetime.now(timezone.utc)), sequence),
             )
         return bool(cursor.rowcount)
+
+    def apply_pending_index_events(self, *, limit: int = 1000) -> int:
+        events = self.pending_index_events(limit=limit)
+        applied_at = datetime.now(timezone.utc)
+        with self.connection:
+            for event in events:
+                self.connection.execute("DELETE FROM memory_fts WHERE record_id = ?", (event["record_id"],))
+                scope = MemoryScope(event["tenant_id"], event["user_id"], event["project_id"])
+                record = self.get(scope, event["record_id"], include_inactive=True)
+                if event["event_type"] == "stored" and record is not None and record.status == "active":
+                    normalized = json.dumps(record.content, ensure_ascii=False, sort_keys=True, default=str)
+                    self.connection.execute(
+                        """INSERT INTO memory_fts
+                           (record_id, tenant_id, user_id, project_id, summary, normalized_text)
+                           VALUES (?,?,?,?,?,?)""",
+                        (record.id, record.tenant_id, record.user_id, record.project_id, record.summary, normalized),
+                    )
+                self.connection.execute(
+                    "UPDATE memory_index_outbox SET applied_at = ? WHERE sequence = ? AND applied_at IS NULL",
+                    (_iso(applied_at), event["sequence"]),
+                )
+        return len(events)
