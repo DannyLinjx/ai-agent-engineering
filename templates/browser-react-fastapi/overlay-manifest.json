@@ -14,8 +14,36 @@
       "destination": "src/agent_control/events.py"
     },
     {
+      "source": "backend/agent_control/config.py",
+      "destination": "src/agent_control/config.py"
+    },
+    {
+      "source": "backend/agent_control/db.py",
+      "destination": "src/agent_control/db.py"
+    },
+    {
+      "source": "backend/agent_control/auth.py",
+      "destination": "src/agent_control/auth.py"
+    },
+    {
+      "source": "backend/agent_control/models.py",
+      "destination": "src/agent_control/models.py"
+    },
+    {
+      "source": "backend/agent_control/api.py",
+      "destination": "src/agent_control/api.py"
+    },
+    {
       "source": "backend/tests/test_events.py",
       "destination": "tests/test_browser_events.py"
+    },
+    {
+      "source": "backend/tests/test_auth.py",
+      "destination": "tests/test_browser_auth.py"
+    },
+    {
+      "source": "backend/tests/test_scope.py",
+      "destination": "tests/test_browser_scope.py"
     }
   ]
 }
