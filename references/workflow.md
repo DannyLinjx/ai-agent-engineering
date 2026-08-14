@@ -39,6 +39,13 @@ Classify the task as new build, incremental development, refactor, defect, secur
 
 Record optional integration choices in `config/integrations.config.json`. When the user has not chosen a Channel or MCP server, select `none`; when no live Model Provider is chosen for development/test, select `mock`. Do not pause for these choices and do not classify their adapter tests as core completion criteria. Read `channels-and-integrations.md`.
 
+For Factory work, also record the Experience (`headless`, `browser_chat`, or
+`operations_console`), Memory (`disabled`, `local`, `hybrid`, or `enterprise`), and
+Delivery (`plan_only`, `guided_install`, or `end_to_end`) profiles. Read
+`browser-experience.md` and `memory-deployment.md`. These selections define the
+candidate and implementation plan; they do not authorize dependency installation,
+credential configuration, live-data migration, network exposure, or deployment.
+
 If a high-impact choice cannot be inferred from the repository or request, pause before implementation. Never treat prompt text as the only safety boundary.
 
 ## Step 3: create the capability matrix
@@ -68,6 +75,11 @@ Every phase plan states objective, affected files, contracts, migrations, risk, 
 ## Step 5: design contracts before business logic
 
 Create or confirm contracts for AgentState, AgentPlan, PlanStep, model request/response, Tool, ToolResult, PermissionDecision, Approval, HookEvent, MemoryRecord, Session, Checkpoint, Artifact, SubAgentTask/Result, MCP server/tool, VerificationResult, TraceEvent, and configuration. Define versioning and migration behavior for persisted contracts.
+
+When a Browser Experience is selected, add Principal, Command, Job, safe Run Event,
+SSE cursor, approval fingerprint, and browser projection contracts. When Memory is
+selected, add canonical-store ownership, policy decision, lifecycle event, index
+outbox, export/import, migration, and rollback contracts before adapter code.
 
 Generate architecture and data-flow diagrams, ADRs for material choices, a threat model, database schema, configuration schema, failure taxonomy, and ownership boundaries. Use `references/architecture.md` and the module references.
 

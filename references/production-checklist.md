@@ -46,6 +46,19 @@ Do not call an agent production-ready until each applicable item has evidence an
 - canary/feature flags, staged migration, backup restore, and disaster recovery tested;
 - configuration provenance and model/prompt/tool/skill version rollback available.
 
+## Browser and Memory profiles
+
+- Browser authentication, CSRF, tenant/user scoping, safe Event projection, SSE
+  recovery, approval replay protection, artifact authorization, accessibility, and
+  dependency-backed frontend/backend/E2E gates have evidence;
+- API handlers persist commands and never execute Agent tools or resolve credentials;
+- exactly one Memory canonical store is declared; consent, retention, correction,
+  deletion, index propagation, export, and authorization-before-ranking are verified;
+- selected enterprise Memory adapters have SecretRefs, health/SLO ownership, backup
+  restore, rebuild, shadow migration comparison, approved cutover, and tested rollback;
+- profile manifests and deployment plan match the released configuration; generated
+  or planned status alone is not production evidence.
+
 ## Release evidence
 
 Record code revision, artifact digest, configuration/schema versions, model profiles, tool/skill/MCP catalog versions, test/eval reports, migration plan, security approval, known limitations, owners, rollout steps, and rollback trigger. Use `schemas/production-readiness.schema.json` for a machine-readable gate.

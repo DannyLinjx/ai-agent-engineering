@@ -20,6 +20,14 @@ No-tool response, one tool, multiple tools, tool failure/recovery, max steps, re
 
 Also cover permission, context, memory, session, multi-user, MCP, routing, and subagent cases listed in their references.
 
+Selected Browser profiles additionally cover authentication/logout, CSRF, scoped
+object guesses, command idempotency, Worker lease loss, cancellation, safe Event
+redaction, SSE reconnect/replay, approval change/expiry/rejection, artifact security,
+responsive keyboard interaction, and verified completion. Selected Memory profiles
+cover consent/secret rejection, restart persistence, authorization-before-ranking,
+conflict/correction, expiry/deletion propagation, deterministic export, index rebuild,
+and—when applicable—backup restore and shadow migration comparison.
+
 ## Eval case contract
 
 Use `schemas/evaluation-case.schema.json`. A case declares stable ID, task, setup/fixtures, allowed and forbidden actions, expected assertions, evaluator type, thresholds, budgets, tags, and cleanup. Freeze dataset/version and prevent training-test leakage.
@@ -38,4 +46,8 @@ Compare candidate to baseline with identical dataset and configuration except in
 
 ## Acceptance scenarios
 
-The five examples in `examples/` are canonical forward scenarios. At least one complete scenario should run against every release candidate. Coding-agent acceptance must inspect, test, plan, edit, retest, inspect diff, and summarize; dangerous-operation acceptance must require approval and avoid execution when rejected.
+The examples in `examples/` are canonical forward scenarios, including the local
+Browser/Memory and enterprise operations-console Blueprints. At least one complete
+scenario should run against every release candidate. Coding-agent acceptance must
+inspect, test, plan, edit, retest, inspect diff, and summarize; dangerous-operation
+acceptance must require approval and avoid execution when rejected.

@@ -1,0 +1,17 @@
+flowchart LR
+  P["Memory proposal"] --> G["Policy\nconsent · secret · durable value"]
+  G -->|reject| X["Reason + audit event"]
+  G -->|accept| C["One canonical store\nSQLite or PostgreSQL"]
+  C --> O["Transactional lifecycle outbox"]
+  O --> K["Keyword index"]
+  O --> V["Optional vector index"]
+  O --> H["Optional graph projection"]
+  Q["Scoped query"] --> A["Authorization filter"]
+  A --> K
+  A --> V
+  A --> H
+  K --> R["Bounded rank + provenance"]
+  V --> R
+  H --> R
+  C --> L["Correct · expire · delete · export"]
+  L --> O

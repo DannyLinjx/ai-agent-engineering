@@ -1,0 +1,11 @@
+flowchart LR
+  B["Browser UI\nConversation · Runs · Approvals · Artifacts · Memory"] -->|"typed command + CSRF"| A["FastAPI control plane\nAuth · scope · validation"]
+  A --> J["Durable command/job store"]
+  J --> W["Bounded Agent worker"]
+  W --> R["Agent runtime\npermissions · tools · verifier"]
+  W --> E["Safe Run Event projector"]
+  E --> D["Durable event log"]
+  D -->|"cursor SSE replay"| B
+  A --> M["Scoped MemoryPort"]
+  A --> O["Authorized artifact store"]
+  R -.->|"never through browser"| S["SecretRef resolver"]

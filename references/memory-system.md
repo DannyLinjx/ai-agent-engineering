@@ -2,6 +2,10 @@
 
 Memory is governed, scoped state—not a transcript dump. Separate short-term session state, long-term durable memory, and user/profile preferences.
 
+For profile selection, SQLite/FTS5 implementation, enterprise adapters, and safe
+migration/cutover, also read `memory-deployment.md` and use
+`../assets/memory-platform.mmd` as the lifecycle map.
+
 ## Memory record
 
 Store stable ID, tenant/user/project scope, type, normalized content, source/provenance, confidence, sensitivity, consent basis, created/updated/accessed times, retention/expiry, conflict links, embedding/index version, and deletion state. Encrypt sensitive values and keep credentials out of memory.
@@ -25,3 +29,8 @@ Implement retention, expiration, export, correction, deletion, index rebuild, an
 ## Tests
 
 Test that temporary facts are not stored, durable facts are stored with consent, new sessions retrieve only relevant records, duplicates merge, conflicts remain visible, decay changes ranking, sensitive values are rejected/redacted, tenant scopes do not cross, and deletion propagates.
+
+Add restart persistence, authorization-before-ranking, deterministic export,
+transactional outbox, index rebuild, backup restore, shadow-read comparison, and
+rollback tests when the selected profile includes those behaviors. Optional vector,
+graph, or Mem0 adapters are `not_applicable` until selected and configured.

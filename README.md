@@ -10,6 +10,7 @@ AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范�
 
 - [它解决什么问题](#它解决什么问题)
 - [核心能力](#核心能力)
+- [浏览器交互与记忆平台 Profile](#浏览器交互与记忆平台-profile)
 - [设计理念](#设计理念)
 - [工作模式](#工作模式)
 - [阶段化构建 P0–P10](#阶段化构建-p0p10)
@@ -74,6 +75,21 @@ AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范�
 | 测试与评测 | 测试金字塔、评测用例、判官、回归门禁 |
 | 生产化 | 发布清单、金丝雀、事故、回滚 |
 | 安全模型 | 威胁模型、滥用用例、拒绝策略 |
+
+## 浏览器交互与记忆平台 Profile
+
+Factory 现在通过三组独立 Profile 让“Agent 创造 Agent”既能快速形成雏形，也
+能保留企业升级路径：Experience 选择 `headless`、`browser_chat` 或
+`operations_console`；Memory 选择禁用、`local`、`hybrid` 或 `enterprise`；
+Delivery 选择 `plan_only`、`guided_install` 或 `end_to_end`。旧 Blueprint 不写
+这些字段仍然有效，并使用 headless、禁用本地 Memory、plan-only 安全默认值。
+
+浏览器首个参考栈为 React/Vite + FastAPI，提供对话、Run 时间线、审批、产物、
+Memory 和可选运维控制台。浏览器仅显示安全投影；Agent 执行、授权与凭据解析
+始终留在服务端边界。Memory 雏形使用 SQLite + FTS5，Markdown 只用于显式导入
+导出；企业方案以 PostgreSQL 为唯一权威存储，并按需挂接向量、图或 Mem0 等
+适配器。详见 `references/browser-experience.md` 与
+`references/memory-deployment.md`。
 
 ## 设计理念
 
@@ -271,6 +287,11 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 Factory 是构建期控制面：`--plan` 不写目标目录，`--apply` 拒绝 blockers 和非空目标，只生成候选与待验证证据。生产发布、敏感数据访问和高风险权限始终保留人工审批。
 
+浏览器 + 本地 Memory 可从 `examples/local-memory-agent-blueprint.json` 开始；
+企业运维控制台 + PostgreSQL 方案可从
+`examples/browser-enterprise-agent-blueprint.json` 开始。Factory 会写出 Experience、
+Memory 和 Deployment 三份治理清单，但不会安装依赖、启动服务或部署。
+
 现有项目始终保留原语言和框架；Python/TypeScript 模板只作为架构参考，不应成为迁移语言的理由。`generic` 模式只生成语言中立的配置、Schema、模块计划和契约测试计划，不生成 Python/TypeScript 源码。
 
 然后复制并填写以下模板：`templates/agent-charter.md`（Agent 章程）、`templates/capability-matrix.md`（能力矩阵）、`templates/threat-model.md`（威胁模型）、`templates/agent-config.yaml`（运行时配置）、`templates/permission-policy.yaml`（权限策略）、`templates/acceptance-test-plan.md`（验收测试计划）。脚手架刻意保持最小化：存储、迁移、遥测、Skill、MCP 和业务工具都通过接口扩展，而不是削弱边界。
@@ -289,11 +310,13 @@ ai-agent-engineering/
 │   ├── permission-flow.mmd      # 权限流图
 │   ├── subagent-flow.mmd        # 子代理流程图
 │   ├── agent-factory-flow.mmd   # Blueprint 到候选 Agent 的受控工厂流程
-│   ├── capability-catalog.json  # 能力目录（23 项能力、状态、优先级）
+│   ├── browser-control-plane.mmd# 浏览器控制面与 Worker/SSE 边界
+│   ├── memory-platform.mmd      # Memory 权威存储、索引与生命周期
+│   ├── capability-catalog.json  # 能力目录、状态与优先级
 │   └── phase-gates.yaml         # P0–P10 阶段与必需证据
 ├── references/                  # 20+ 份模块参考（按需读取，见参考资料导航）
-├── schemas/                     # 9 份语言中立契约 schema（含 Agent Blueprint）
-├── scripts/                     # 10 个确定性脚本（仅标准库）
+├── schemas/                     # 语言中立契约 schema（含 Blueprint 与 Profile 清单）
+├── scripts/                     # 确定性生成、验证与审计脚本（仅标准库）
 ├── templates/
 │   ├── agent-blueprint.json     # 开发安全默认值的 Blueprint 模板
 │   ├── agent-charter.md         # Agent 章程模板
@@ -554,6 +577,8 @@ python3 scripts/validate_skill_structure.py --skill . --json
 | 示例 | 内容 |
 | --- | --- |
 | `enterprise-agent-blueprint.json` | 企业服务运营 Agent Blueprint：多租户、机密数据、可选集成、确定性验证与人工审批 |
+| `local-memory-agent-blueprint.json` | React/FastAPI 浏览器对话 + SQLite/FTS5 本地 Memory + guided install 方案 |
+| `browser-enterprise-agent-blueprint.json` | 企业 operations console + PostgreSQL/pgvector Memory + end-to-end 治理方案 |
 | `coding-agent.md` | 编码 Agent 完整垂直切片：检查项目 → 复现失败 → 诊断 → 最小补丁 → 验证 → diff 审查 |
 | `research-agent.md` | 研究 Agent：有证据的技术对比、来源溯源、claim 级证据、不确定性报告 |
 | `enterprise-rag-agent.md` | 企业 RAG Agent：权威结构化规则验证、租户隔离、缓存键、`indeterminate` 失败模式 |
@@ -573,11 +598,13 @@ python3 scripts/validate_skill_structure.py --skill . --json
 | 需要 | 阅读 |
 |---|---|
 | 从企业需求生成 Agent Blueprint、Recipe 和候选；Agent 创建 Agent | `references/agent-factory.md` |
+| 浏览器对话、运维控制台、React/FastAPI 控制面 | `references/browser-experience.md` |
 | 循环、规划器、预算、重试、取消、完成 | `references/agent-runtime.md` |
 | 工具契约、注册表、命令/路径/网络安全 | `references/tool-system.md` |
 | Skill 发现、选择、作用域、脚本 | `references/skill-system.md` |
 | Token 预算、产物卸载、压缩、注入边界 | `references/context-management.md` |
 | 持久记忆、同意、检索、冲突、删除 | `references/memory-system.md` |
+| SQLite 雏形、企业 Memory 适配器、迁移与部署 | `references/memory-deployment.md` |
 | 会话、检查点、恢复、回退、产物 | `references/session-checkpoint.md` |
 | ALLOW/DENY/ASK、审批、凭据、守卫 | `references/permission-system.md` |
 | 生命周期事件与确定性策略注入 | `references/hook-system.md` |

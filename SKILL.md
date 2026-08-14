@@ -70,6 +70,14 @@ Treat `agents/*` and `host-adapters/*` as optional host metadata. Their absence 
 
 Treat the Agent Factory as a build-time control plane and the generated Agent Runtime as the execution plane. The Factory may generate and verify candidates; it never grants high-risk permissions or deploys production without human approval. Read `references/agent-factory.md` for Factory requests.
 
+For Factory requests, normalize three independent profiles before implementation:
+
+- **Experience:** `headless`, `browser_chat`, or `operations_console`. Read `references/browser-experience.md` when a browser interface is selected. The browser is a safe projection; API handlers never execute Agent work or resolve credentials.
+- **Memory:** disabled or `local`, `hybrid`, or `enterprise`. Read `references/memory-deployment.md` with `references/memory-system.md`. Keep exactly one canonical store and treat keyword, vector, graph, and framework integrations as lifecycle-governed adapters.
+- **Delivery:** `plan_only`, `guided_install`, or `end_to_end`. This selects the requested engagement, not authority. The Factory still cannot install, migrate live data, expose services, or deploy.
+
+Legacy Blueprints without these sections remain valid and normalize to headless, disabled local Memory, and plan-only delivery.
+
 ## Module routing
 
 Load only the references required by the task:
@@ -77,11 +85,13 @@ Load only the references required by the task:
 | Need | Read |
 |---|---|
 | create an enterprise Agent from a Blueprint; Agent creates Agent | `references/agent-factory.md` |
+| browser chat, operations console, React/FastAPI control plane | `references/browser-experience.md` |
 | loop, planner, budgets, retry, cancellation, completion | `references/agent-runtime.md` |
 | tool contract, registry, command/path/network safety | `references/tool-system.md` |
 | skill discovery, selection, scopes, scripts | `references/skill-system.md` |
 | token budgets, artifact offload, compaction, injection boundary | `references/context-management.md` |
 | durable memory, consent, retrieval, conflict, deletion | `references/memory-system.md` |
+| local SQLite Memory, enterprise adapters, migration/deployment | `references/memory-deployment.md` |
 | sessions, checkpoints, resume, rewind, artifacts | `references/session-checkpoint.md` |
 | ALLOW/DENY/ASK, approvals, credentials, guards | `references/permission-system.md` |
 | lifecycle events and deterministic policy injection | `references/hook-system.md` |
@@ -143,6 +153,8 @@ python scripts/create_agent_from_blueprint.py --blueprint <blueprint.json> --tar
 
 `--plan` never mutates the target. `--apply` refuses blockers and non-empty targets, generates candidate artifacts, and stops at human release approval.
 
+Use `examples/local-memory-agent-blueprint.json` for the local Browser + SQLite path and `examples/browser-enterprise-agent-blueprint.json` for the governed operations-console + PostgreSQL plan. Applying a supported Python Browser profile composes the `browser-react-fastapi` overlay without installing dependencies or starting services.
+
 Then copy and complete `templates/agent-charter.md`, `templates/capability-matrix.md`, `templates/threat-model.md`, `templates/agent-config.yaml`, `templates/permission-policy.yaml`, and `templates/acceptance-test-plan.md`. Use `schemas/` as language-neutral configuration/state/tool/eval/trace/readiness contracts. The scaffolds are intentionally minimal: add storage, migrations, telemetry, skills, MCP, and business tools through their interfaces rather than weakening boundaries.
 
 The scaffold includes a core-only optional integration config. Keep it unchanged or generate user selections:
@@ -162,6 +174,8 @@ python scripts/generate_module_manifest.py --project <project> --output <manifes
 python scripts/validate_agent_architecture.py --project <project> --json
 python scripts/audit_agent_safety.py --project <project> --json
 python scripts/validate_integration_config.py --config <project>/config/integrations.config.json --profile development --json
+python scripts/validate_experience_manifest.py --manifest <project>/factory/experience-manifest.json --json
+python scripts/validate_memory_manifest.py --manifest <project>/factory/memory-manifest.json --json
 python scripts/run_agent_acceptance_tests.py --project <project> --config <commands.json> --report <report.json>
 python scripts/validate_skill_structure.py --skill . --json
 ```

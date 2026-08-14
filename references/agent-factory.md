@@ -11,6 +11,9 @@ The Factory is build-time control plane; the generated Agent Runtime is the exec
 1. Normalize objective, users, workflow, deliverables, perception inputs, data, autonomy, service targets, implementation constraints, and acceptance criteria.
 2. Resolve material unknowns. Assume only low-risk reversible gaps and record them.
 3. Create `agent-blueprint.json` from `schemas/agent-blueprint.schema.json`.
+   Normalize Experience, Memory, and Delivery profiles; absent sections use the safe
+   backward-compatible defaults documented in `browser-experience.md` and
+   `memory-deployment.md`.
 4. Generate a deterministic Build Recipe with `--plan`; do not mutate the target.
 5. Review required, planned, blocked, and not-applicable capabilities plus human approvals.
 6. Use `--apply` only when blockers are empty and the target is absent or empty.
@@ -45,9 +48,16 @@ python scripts/create_agent_from_blueprint.py \
 | `factory/build-recipe.json` | deterministic selection, gaps, phases, approvals, and validation commands |
 | `factory/capability-matrix.json` | required/optional capability state and evidence mapping |
 | `factory/assembly-manifest.json` | perception, tool, Skill, knowledge, memory, model, Channel, MCP, and instruction plan |
+| `factory/experience-manifest.json` | Browser profile, supported/generated surfaces, safe Events, and projection boundaries |
+| `factory/memory-manifest.json` | canonical store, derived adapters, consent/retention, lifecycle, and ranking boundary |
+| `factory/deployment-plan.json` | non-mutating dependency, approval, migration, cutover, rollback, and validation plan |
 | `factory/release-checklist.json` | pending automated gates and required human decisions |
 
 Statuses are `planned`, `generated`, `candidate_passed`, `candidate_failed`, `blocked`, and `awaiting_human_approval`. None means deployed.
+
+`delivery.engagement` is descriptive scope, not authorization. Even `end_to_end`
+leaves `installation_allowed` and `deployment_allowed` false until a later task has
+explicit authority and passes the recorded approval gates.
 
 ## Perception and reflection
 

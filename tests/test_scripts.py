@@ -307,6 +307,39 @@ class SkillScriptTests(unittest.TestCase):
         expected = set(factory_case["expected"])
         self.assertTrue({"agent blueprint", "build recipe", "candidate evidence", "human release approval"}.issubset(expected))
 
+    def test_browser_and_memory_profile_resources_are_routed(self) -> None:
+        resources = {
+            "references/browser-experience.md",
+            "references/memory-deployment.md",
+            "assets/browser-control-plane.mmd",
+            "assets/memory-platform.mmd",
+            "examples/browser-enterprise-agent-blueprint.json",
+            "examples/local-memory-agent-blueprint.json",
+            "schemas/experience-manifest.schema.json",
+            "schemas/memory-manifest.schema.json",
+            "schemas/deployment-plan.schema.json",
+            "schemas/browser-run-event.schema.json",
+            "scripts/validate_experience_manifest.py",
+            "scripts/validate_memory_manifest.py",
+        }
+        validator = (ROOT / "scripts/validate_skill_structure.py").read_text(encoding="utf-8")
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertTrue(all((ROOT / rel).is_file() for rel in resources))
+        self.assertTrue(all(f'"{rel}"' in validator for rel in resources))
+        self.assertIn("references/browser-experience.md", skill)
+        self.assertIn("references/memory-deployment.md", skill)
+        for rel in ("examples/browser-enterprise-agent-blueprint.json", "examples/local-memory-agent-blueprint.json"):
+            with tempfile.TemporaryDirectory() as tmp:
+                target = Path(tmp) / "candidate"
+                first = Path(tmp) / "first.json"
+                second = Path(tmp) / "second.json"
+                args = ("--blueprint", str(ROOT / rel), "--target", str(target))
+                run_script("create_agent_from_blueprint.py", *args, "--plan", str(first))
+                run_script("create_agent_from_blueprint.py", *args, "--plan", str(second))
+                self.assertEqual(first.read_bytes(), second.read_bytes())
+                self.assertEqual(json.loads(first.read_text(encoding="utf-8"))["status"], "planned")
+                self.assertFalse(target.exists())
+
     def test_structure_validator_treats_host_metadata_as_optional(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             skill = Path(tmp) / "ai-agent-engineering"

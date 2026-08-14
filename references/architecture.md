@@ -16,6 +16,16 @@ Design the runtime as replaceable modules connected by explicit contracts. The m
 
 See `assets/architecture-diagram.mmd` for the data flow.
 
+For a Browser Experience, the interface becomes a separate control plane as shown in
+`../assets/browser-control-plane.mmd`: request handlers authenticate, authorize, and
+persist commands; a Worker invokes the Agent Runtime; the browser consumes safe,
+durable projections. Never place Agent execution or credential resolution in the API
+request path.
+
+For durable Memory, follow `../assets/memory-platform.mmd`: one canonical store owns
+records, while FTS, vector, graph, and framework integrations consume lifecycle
+events as rebuildable projections. Authorization filters candidates before ranking.
+
 ## Required dependency direction
 
 Domain contracts must not depend on provider SDKs, CLI frameworks, databases, or MCP libraries. Adapters depend inward on contracts. The orchestrator consumes interfaces such as `ModelGateway`, `ToolExecutor`, `StateRepository`, `PermissionEngine`, `ContextBuilder`, and `Verifier`. No tool may mutate orchestrator state directly.
@@ -63,6 +73,10 @@ Use `schemas/agent-state.schema.json` as a language-neutral baseline. Add typed 
 ## Control plane versus data plane
 
 The control plane stores configuration, policy, tool/skill catalogs, model profiles, routing, feature flags, and eval definitions. The data plane handles user messages, tool inputs/outputs, artifacts, memory, sessions, and telemetry. Give them separate authorization and retention policies. Configuration changes need provenance, validation, rollout, and rollback.
+
+A browser control plane is still part of the execution product, not the build-time
+Agent Factory. The Factory may generate its contracts and source overlay, but only a
+later, explicitly authorized delivery task may install, expose, migrate, or deploy it.
 
 ## Synchronous and asynchronous work
 

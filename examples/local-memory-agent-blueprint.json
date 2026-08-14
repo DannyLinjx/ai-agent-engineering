@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "blueprint_id": "local-memory-agent.v1",
+  "agent": {"id": "local-memory-agent", "name": "Local Memory Agent", "owner": "product-owner"},
+  "product": {
+    "objective": "Deliver a local browser chat Agent with governed durable Memory",
+    "intended_users": ["one authorized local user"],
+    "business_workflow": ["receive request", "retrieve scoped memory", "perform bounded work", "verify response"],
+    "deliverables": ["verified response", "editable memory record"],
+    "non_goals": ["multi-node deployment", "automatic external service installation"],
+    "prohibited_uses": ["store credentials", "unapproved external writes"],
+    "acceptance_criteria": ["memory survives restart", "correction and deletion propagate", "all results remain user scoped"]
+  },
+  "perception": {
+    "modalities": ["text", "history"],
+    "intent_fields": ["objective"],
+    "entity_fields": ["request_id"],
+    "sources": ["authenticated local browser session"]
+  },
+  "data_governance": {
+    "data_classes": ["internal"],
+    "tenant_isolation": true,
+    "workspace_boundary": "one local workspace",
+    "retention_days": 30,
+    "residency": "local machine",
+    "consent_required": true,
+    "compliance_constraints": ["export and deletion"]
+  },
+  "capabilities": {
+    "required": ["runtime", "planner", "permissions", "verification", "security", "evaluation", "session", "checkpoint", "memory"],
+    "optional": ["observability", "model-routing"]
+  },
+  "autonomy": {
+    "level": "supervised",
+    "allowed_actions": ["read authorized inputs", "produce candidate artifacts", "propose memory"],
+    "approval_required_actions": ["external_write", "production_release"],
+    "always_denied_actions": ["self_grant_permissions", "embed_credentials"],
+    "escalation_owner": "local-user"
+  },
+  "service": {
+    "max_steps": 16,
+    "max_tokens": 50000,
+    "max_cost_usd": 2.0,
+    "deadline_seconds": 600,
+    "latency_slo_ms": 30000,
+    "availability_target": 0.99,
+    "quality_threshold": 0.9,
+    "recovery_target": "resume from the latest valid checkpoint"
+  },
+  "implementation": {
+    "language": "python",
+    "profile": "development",
+    "deployment_environment": "local loopback workspace",
+    "optional_integrations": {"channels": "none", "model_provider": "mock", "mcp": "none"}
+  },
+  "experience": {
+    "profile": "browser_chat",
+    "reference_stack": "react_fastapi",
+    "auth": "local_account",
+    "realtime": "sse",
+    "surfaces": ["conversation", "run_inspector", "approvals", "artifacts", "memory"]
+  },
+  "memory": {
+    "enabled": true,
+    "profile": "local",
+    "canonical_store": "sqlite",
+    "keyword_index": "sqlite_fts5",
+    "vector_index": "none",
+    "graph_store": "none",
+    "framework": "native"
+  },
+  "delivery": {"engagement": "guided_install"},
+  "verification": {
+    "mandatory_scenarios": ["restart and retrieve", "cross-user denial", "memory conflict", "consent rejection", "memory deletion"],
+    "deterministic_assertions": ["authorization precedes ranking", "credentials never persist", "completion has evidence"],
+    "eval_thresholds": {"task_success": 0.9, "safety_violation_rate": 0.0},
+    "security_gates": ["scope filter", "secret rejection", "consent policy"],
+    "verifier_type": "deterministic"
+  },
+  "assumptions": [{"id": "a1", "statement": "SQLite FTS5 is available in the selected Python runtime", "risk": "low", "resolution": "assumed"}],
+  "unknowns": []
+}
