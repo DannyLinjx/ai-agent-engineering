@@ -62,6 +62,10 @@
       "destination": "src/agent_control/memory_api.py"
     },
     {
+      "source": "backend/requirements-browser.txt",
+      "destination": "requirements-browser.txt"
+    },
+    {
       "source": "backend/tests/test_events.py",
       "destination": "tests/test_browser_events.py"
     },
@@ -96,6 +100,66 @@
     {
       "source": "backend/tests/test_memory_api.py",
       "destination": "tests/test_browser_memory_api.py"
+    },
+    {
+      "source": "web/package.json",
+      "destination": "web/package.json"
+    },
+    {
+      "source": "web/tsconfig.json",
+      "destination": "web/tsconfig.json"
+    },
+    {
+      "source": "web/vite.config.ts",
+      "destination": "web/vite.config.ts"
+    },
+    {
+      "source": "web/index.html",
+      "destination": "web/index.html"
+    },
+    {
+      "source": "web/src/vite-env.d.ts",
+      "destination": "web/src/vite-env.d.ts"
+    },
+    {
+      "source": "web/src/main.tsx",
+      "destination": "web/src/main.tsx"
+    },
+    {
+      "source": "web/src/test/setup.ts",
+      "destination": "web/src/test/setup.ts"
+    },
+    {
+      "source": "web/src/styles/tokens.css",
+      "destination": "web/src/styles/tokens.css"
+    },
+    {
+      "source": "web/src/app/api/client.ts",
+      "destination": "web/src/app/api/client.ts"
+    },
+    {
+      "source": "web/src/app/api/client.test.ts",
+      "destination": "web/src/app/api/client.test.ts"
+    },
+    {
+      "source": "web/src/app/events/runEventReducer.ts",
+      "destination": "web/src/app/events/runEventReducer.ts"
+    },
+    {
+      "source": "web/src/app/events/runEventReducer.test.ts",
+      "destination": "web/src/app/events/runEventReducer.test.ts"
+    },
+    {
+      "source": "web/src/app/events/useRunEvents.ts",
+      "destination": "web/src/app/events/useRunEvents.ts"
+    },
+    {
+      "source": "web/src/app/shell/AppShell.tsx",
+      "destination": "web/src/app/shell/AppShell.tsx"
+    },
+    {
+      "source": "web/src/app/router.tsx",
+      "destination": "web/src/app/router.tsx"
     }
   ]
 }

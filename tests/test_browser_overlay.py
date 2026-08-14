@@ -57,6 +57,8 @@ class BrowserOverlayTests(unittest.TestCase):
 
             self.assertTrue((target / "src/agent_control/events.py").is_file())
             self.assertTrue((target / "tests/test_browser_events.py").is_file())
+            self.assertTrue((target / "web/index.html").is_file())
+            self.assertTrue((target / "web/package.json").is_file())
             for forbidden in ("web/node_modules", ".venv", ".env", "browser.pid"):
                 self.assertFalse((target / forbidden).exists(), forbidden)
 
