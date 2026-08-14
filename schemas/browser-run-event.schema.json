@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/ai-agent-engineering/browser-run-event.schema.json",
+  "title": "BrowserRunEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "run_id", "sequence", "type", "timestamp", "status", "payload"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "type": {"enum": [
+      "approval.required", "approval.resolved", "artifact.created", "evidence.added",
+      "memory.proposed", "memory.rejected", "memory.stored", "plan.updated", "run.status",
+      "step.completed", "step.failed", "step.started", "tool.completed", "tool.failed",
+      "tool.started", "verification.completed"
+    ]},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "status": {"type": "string", "minLength": 1},
+    "payload": {"type": "object"}
+  }
+}

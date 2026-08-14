@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/ai-agent-engineering/experience-manifest.schema.json",
+  "title": "ExperienceManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "blueprint_id", "profile", "reference_stack", "auth", "realtime", "status",
+    "generated_surfaces", "planned_surfaces", "safe_events", "boundaries", "recipe_hash"
+  ],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "blueprint_id": {"type": "string", "minLength": 1},
+    "profile": {"enum": ["headless", "browser_chat", "operations_console"]},
+    "reference_stack": {"enum": ["none", "react_fastapi"]},
+    "auth": {"enum": ["none", "local_account", "server_session", "oidc"]},
+    "realtime": {"enum": ["none", "sse", "websocket"]},
+    "status": {"enum": ["not_applicable", "planned", "generated"]},
+    "generated_surfaces": {"$ref": "#/$defs/unique_strings"},
+    "planned_surfaces": {"$ref": "#/$defs/unique_strings"},
+    "safe_events": {
+      "type": "array", "uniqueItems": true,
+      "items": {"enum": [
+        "approval.required", "approval.resolved", "artifact.created", "evidence.added",
+        "memory.proposed", "memory.rejected", "memory.stored", "plan.updated", "run.status",
+        "step.completed", "step.failed", "step.started", "tool.completed", "tool.failed",
+        "tool.started", "verification.completed"
+      ]}
+    },
+    "boundaries": {
+      "type": "object", "additionalProperties": false,
+      "required": ["api_executes_agent", "browser_resolves_credentials", "hidden_reasoning_exposed", "authorization_before_projection"],
+      "properties": {
+        "api_executes_agent": {"const": false},
+        "browser_resolves_credentials": {"const": false},
+        "hidden_reasoning_exposed": {"const": false},
+        "authorization_before_projection": {"const": true}
+      }
+    },
+    "recipe_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "unique_strings": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -141,6 +143,118 @@ class FactoryProfileTests(unittest.TestCase):
             }.issubset(set(recipe["derived_required"]))
         )
         self.assertTrue({"P0", "P3", "P5", "P8", "P10"}.issubset(set(recipe["applicable_phases"])))
+
+    def test_apply_emits_profile_manifests_without_install_authority(self) -> None:
+        blueprint = self.blueprint()
+        blueprint["experience"] = {
+            "profile": "operations_console",
+            "reference_stack": "react_fastapi",
+            "auth": "server_session",
+            "realtime": "sse",
+            "surfaces": ["conversation", "run_inspector", "overview", "memory"],
+        }
+        blueprint["memory"] = {
+            "enabled": True,
+            "profile": "enterprise",
+            "canonical_store": "postgresql",
+            "keyword_index": "postgres_fts",
+            "vector_index": "pgvector",
+            "graph_store": "none",
+            "framework": "native",
+        }
+        blueprint["delivery"] = {"engagement": "end_to_end"}
+        recipe = factory.build_recipe(blueprint)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "profiled-agent"
+            report = factory.apply_blueprint(blueprint, recipe, target)
+
+            for name in ("experience-manifest.json", "memory-manifest.json", "deployment-plan.json"):
+                self.assertTrue((target / "factory" / name).is_file(), name)
+            deployment = json.loads((target / "factory/deployment-plan.json").read_text(encoding="utf-8"))
+            self.assertFalse(deployment["installation_allowed"])
+            self.assertFalse(deployment["deployment_allowed"])
+            self.assertEqual(deployment["engagement"], "end_to_end")
+            self.assertEqual(report["status"], "awaiting_human_approval")
+            self.assertTrue(
+                {"factory/experience-manifest.json", "factory/memory-manifest.json", "factory/deployment-plan.json"}.issubset(
+                    set(report["artifacts"])
+                )
+            )
+
+    def test_profile_plan_is_byte_deterministic(self) -> None:
+        blueprint = self.blueprint()
+        blueprint["experience"] = {
+            "profile": "browser_chat",
+            "reference_stack": "react_fastapi",
+            "auth": "local_account",
+            "realtime": "sse",
+            "surfaces": ["conversation", "run_inspector"],
+        }
+
+        first = factory.canonical_bytes(factory.build_recipe(blueprint))
+        second = factory.canonical_bytes(factory.build_recipe(blueprint))
+
+        self.assertEqual(first, second)
+
+    def test_manifest_validators_accept_generated_and_reject_conflict(self) -> None:
+        blueprint = self.blueprint()
+        blueprint["experience"] = {
+            "profile": "browser_chat",
+            "reference_stack": "react_fastapi",
+            "auth": "server_session",
+            "realtime": "sse",
+            "surfaces": ["conversation", "run_inspector"],
+        }
+        blueprint["memory"] = {
+            "enabled": True,
+            "profile": "enterprise",
+            "canonical_store": "postgresql",
+            "keyword_index": "postgres_fts",
+            "vector_index": "pgvector",
+            "graph_store": "none",
+            "framework": "native",
+        }
+        recipe = factory.build_recipe(blueprint)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "validated-agent"
+            factory.apply_blueprint(blueprint, recipe, target)
+            experience = target / "factory/experience-manifest.json"
+            memory = target / "factory/memory-manifest.json"
+            python = sys.executable
+            accepted_experience = subprocess.run(
+                [python, str(SCRIPTS / "validate_experience_manifest.py"), "--manifest", str(experience), "--json"],
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            accepted_memory = subprocess.run(
+                [python, str(SCRIPTS / "validate_memory_manifest.py"), "--manifest", str(memory), "--json"],
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            self.assertEqual(accepted_experience.returncode, 0, accepted_experience.stdout)
+            self.assertEqual(accepted_memory.returncode, 0, accepted_memory.stdout)
+
+            broken = json.loads(memory.read_text(encoding="utf-8"))
+            broken["canonical_store"] = "sqlite"
+            memory.write_text(json.dumps(broken), encoding="utf-8")
+            rejected = subprocess.run(
+                [python, str(SCRIPTS / "validate_memory_manifest.py"), "--manifest", str(memory), "--json"],
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            self.assertEqual(rejected.returncode, 1, rejected.stdout)
+            self.assertIn("enterprise-canonical-store", rejected.stdout)
 
 
 if __name__ == "__main__":

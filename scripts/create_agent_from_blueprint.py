@@ -76,6 +76,16 @@ SCAFFOLD_CAPABILITIES = {
 APPROVAL_TRIGGERS = {"external_write", "production_change", "production_release", "sensitive_data_access", "scope_expansion"}
 CREDENTIAL_KEY = re.compile(r"(?i)^(?:api[_-]?key|password|secret|access[_-]?token|auth[_-]?token|credential|credentials|credential_refs)$")
 CREDENTIAL_VALUE = re.compile(r"(?i)^(?:sk-|secret://|env://|vault://|bearer\s+|raw-secret)")
+SAFE_BROWSER_EVENTS = (
+    "approval.required", "approval.resolved", "artifact.created", "evidence.added",
+    "memory.proposed", "memory.rejected", "memory.stored", "plan.updated",
+    "run.status", "step.completed", "step.failed", "step.started", "tool.completed",
+    "tool.failed", "tool.started", "verification.completed",
+)
+BROWSER_CHAT_SURFACES = {"conversation", "run_inspector", "approvals", "artifacts", "memory"}
+OPERATIONS_SURFACES = BROWSER_CHAT_SURFACES | {
+    "overview", "runs", "audit", "models", "capabilities", "settings", "access", "health",
+}
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -385,6 +395,7 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
     generated_files = [
         "factory/agent-blueprint.json", "factory/build-recipe.json", "factory/capability-matrix.json",
         "factory/assembly-manifest.json", "factory/release-checklist.json",
+        "factory/experience-manifest.json", "factory/memory-manifest.json", "factory/deployment-plan.json",
     ]
     recipe: dict[str, Any] = {
         "version": "1.0",
@@ -482,6 +493,105 @@ def _assembly_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dic
     }
 
 
+def _experience_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[str, Any]:
+    experience = normalize_profiles(blueprint)["experience"]
+    profile = experience["profile"]
+    default_surfaces = set()
+    if profile == "browser_chat":
+        default_surfaces = BROWSER_CHAT_SURFACES
+    elif profile == "operations_console":
+        default_surfaces = OPERATIONS_SURFACES
+    surfaces = sorted(default_surfaces | _string_set(experience.get("surfaces")))
+    return {
+        "version": "1.0",
+        "blueprint_id": blueprint["blueprint_id"],
+        "profile": profile,
+        "reference_stack": experience["reference_stack"],
+        "auth": experience["auth"],
+        "realtime": experience["realtime"],
+        "status": "not_applicable" if profile == "headless" else "planned",
+        "generated_surfaces": [],
+        "planned_surfaces": surfaces,
+        "safe_events": list(SAFE_BROWSER_EVENTS) if profile != "headless" else [],
+        "boundaries": {
+            "api_executes_agent": False,
+            "browser_resolves_credentials": False,
+            "hidden_reasoning_exposed": False,
+            "authorization_before_projection": True,
+        },
+        "recipe_hash": recipe["recipe_hash"],
+    }
+
+
+def _memory_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[str, Any]:
+    memory = normalize_profiles(blueprint)["memory"]
+    enabled = bool(memory["enabled"])
+    adapters = [memory["canonical_store"]]
+    for key in ("keyword_index", "vector_index", "graph_store", "framework"):
+        adapter = memory[key]
+        if adapter not in {"none", "native"} and adapter not in adapters:
+            adapters.append(adapter)
+    governance = blueprint["data_governance"]
+    return {
+        "version": "1.0",
+        "blueprint_id": blueprint["blueprint_id"],
+        "enabled": enabled,
+        "profile": memory["profile"],
+        "status": "planned" if enabled else "not_applicable",
+        "canonical_store": memory["canonical_store"],
+        "keyword_index": memory["keyword_index"],
+        "vector_index": memory["vector_index"],
+        "graph_store": memory["graph_store"],
+        "framework": memory["framework"],
+        "adapters": adapters if enabled else [],
+        "consent_required": governance["consent_required"],
+        "retention_days": governance["retention_days"],
+        "authorization_before_ranking": True,
+        "one_canonical_store": True,
+        "lifecycle": ["propose", "validate", "store", "retrieve", "correct", "expire", "delete", "reindex"],
+        "recipe_hash": recipe["recipe_hash"],
+    }
+
+
+def _deployment_plan(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[str, Any]:
+    normalized = normalize_profiles(blueprint)
+    experience = normalized["experience"]
+    memory = normalized["memory"]
+    engagement = normalized["delivery"]["engagement"]
+    dependencies: set[str] = set()
+    if experience["profile"] != "headless":
+        dependencies.update({"python-fastapi-control-plane", "react-vite-build"})
+    if memory["enabled"]:
+        dependencies.add(memory["canonical_store"])
+        for key in ("keyword_index", "vector_index", "graph_store", "framework"):
+            value = memory[key]
+            if value not in {"none", "native", memory["canonical_store"]}:
+                dependencies.add(value)
+    approval_gates = []
+    if engagement in {"guided_install", "end_to_end"}:
+        approval_gates.extend(["system_dependency_install", "secret_configuration", "network_exposure"])
+        if memory["enabled"]:
+            approval_gates.extend(["data_backup", "data_migration", "production_cutover"])
+    return {
+        "version": "1.0",
+        "blueprint_id": blueprint["blueprint_id"],
+        "engagement": engagement,
+        "installation_allowed": False,
+        "deployment_allowed": False,
+        "dependencies": sorted(dependencies),
+        "credential_policy": "secret_refs_only",
+        "approval_gates": approval_gates,
+        "validation_commands": list(recipe["validation_commands"]),
+        "migration": {
+            "required": bool(memory["enabled"] and memory["profile"] in {"hybrid", "enterprise"}),
+            "strategy": "backup_sample_backfill_shadow_compare_approved_cutover",
+        },
+        "cutover": {"requires_human_approval": True, "automatic": False},
+        "rollback": {"required": True, "verified_before_cutover": True},
+        "recipe_hash": recipe["recipe_hash"],
+    }
+
+
 def apply_blueprint(blueprint: dict[str, Any], recipe: dict[str, Any], target: Path) -> dict[str, Any]:
     target = target.expanduser().resolve()
     generated = scaffold_project(recipe["scaffold"], blueprint["agent"]["name"], target)
@@ -491,6 +601,9 @@ def apply_blueprint(blueprint: dict[str, Any], recipe: dict[str, Any], target: P
     write_json(factory / "build-recipe.json", recipe)
     write_json(factory / "capability-matrix.json", _capability_matrix(blueprint, recipe))
     write_json(factory / "assembly-manifest.json", _assembly_manifest(blueprint, recipe))
+    write_json(factory / "experience-manifest.json", _experience_manifest(blueprint, recipe))
+    write_json(factory / "memory-manifest.json", _memory_manifest(blueprint, recipe))
+    write_json(factory / "deployment-plan.json", _deployment_plan(blueprint, recipe))
     release = {
         "version": "1.0", "blueprint_id": blueprint["blueprint_id"],
         "status": "awaiting_human_approval",

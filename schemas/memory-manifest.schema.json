@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/ai-agent-engineering/memory-manifest.schema.json",
+  "title": "MemoryManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "blueprint_id", "enabled", "profile", "status", "canonical_store",
+    "keyword_index", "vector_index", "graph_store", "framework", "adapters",
+    "consent_required", "retention_days", "authorization_before_ranking",
+    "one_canonical_store", "lifecycle", "recipe_hash"
+  ],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "blueprint_id": {"type": "string", "minLength": 1},
+    "enabled": {"type": "boolean"},
+    "profile": {"enum": ["local", "hybrid", "enterprise"]},
+    "status": {"enum": ["not_applicable", "planned", "generated"]},
+    "canonical_store": {"enum": ["sqlite", "postgresql"]},
+    "keyword_index": {"enum": ["none", "sqlite_fts5", "postgres_fts"]},
+    "vector_index": {"enum": ["none", "pgvector", "redis", "qdrant", "milvus", "weaviate", "mem0"]},
+    "graph_store": {"enum": ["none", "neo4j", "mem0"]},
+    "framework": {"enum": ["native", "mem0"]},
+    "adapters": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "consent_required": {"type": "boolean"},
+    "retention_days": {"type": "integer", "minimum": 0},
+    "authorization_before_ranking": {"const": true},
+    "one_canonical_store": {"const": true},
+    "lifecycle": {"type": "array", "uniqueItems": true, "items": {"enum": ["propose", "validate", "store", "retrieve", "correct", "expire", "delete", "reindex"]}},
+    "recipe_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

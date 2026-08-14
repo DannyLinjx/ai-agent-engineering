@@ -115,7 +115,9 @@ class SkillScriptTests(unittest.TestCase):
                 self.assertTrue((target / "factory" / name).is_file(), name)
             report = json.loads(report_path.read_text(encoding="utf-8"))
             self.assertEqual(report["status"], "awaiting_human_approval")
-            self.assertNotIn("deploy", json.dumps(report).lower())
+            deployment_plan = json.loads((target / "factory/deployment-plan.json").read_text(encoding="utf-8"))
+            self.assertFalse(deployment_plan["installation_allowed"])
+            self.assertFalse(deployment_plan["deployment_allowed"])
             integrations = json.loads((target / "config/integrations.config.json").read_text(encoding="utf-8"))
             blueprint = json.loads((ROOT / "examples/enterprise-agent-blueprint.json").read_text(encoding="utf-8"))
             expected_integrations = blueprint["implementation"]["optional_integrations"]
