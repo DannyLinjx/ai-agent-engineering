@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "files": [
+    {
+      "source": "README.overlay.md",
+      "destination": "docs/browser-experience.md"
+    }
+  ]
+}

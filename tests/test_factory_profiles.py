@@ -13,6 +13,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import create_agent_from_blueprint as factory
+import scaffold_agent_project as scaffolder
 
 
 class FactoryProfileTests(unittest.TestCase):
@@ -123,6 +124,7 @@ class FactoryProfileTests(unittest.TestCase):
         recipe = factory.build_recipe(blueprint)
 
         self.assertEqual(recipe["status"], "planned")
+        self.assertEqual(recipe["overlays"], ["browser-react-fastapi"])
         self.assertTrue(
             {
                 "browser-experience",
@@ -171,6 +173,7 @@ class FactoryProfileTests(unittest.TestCase):
 
             for name in ("experience-manifest.json", "memory-manifest.json", "deployment-plan.json"):
                 self.assertTrue((target / "factory" / name).is_file(), name)
+            self.assertTrue((target / "docs/browser-experience.md").is_file())
             deployment = json.loads((target / "factory/deployment-plan.json").read_text(encoding="utf-8"))
             self.assertFalse(deployment["installation_allowed"])
             self.assertFalse(deployment["deployment_allowed"])
@@ -255,6 +258,56 @@ class FactoryProfileTests(unittest.TestCase):
             )
             self.assertEqual(rejected.returncode, 1, rejected.stdout)
             self.assertIn("enterprise-canonical-store", rejected.stdout)
+
+    def test_scaffold_composes_overlay_without_mutating_dry_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "browser-agent"
+
+            generated = scaffolder.scaffold_project(
+                "python",
+                "Browser Agent",
+                target,
+                dry_run=True,
+                overlays=("browser-react-fastapi",),
+            )
+
+            self.assertIn("docs/browser-experience.md", generated)
+            self.assertFalse(target.exists())
+
+    def test_scaffold_rejects_conflicting_overlay_destinations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_root = Path(tmp) / "skill"
+            templates = skill_root / "templates"
+            (templates / "python-agent").mkdir(parents=True)
+            (templates / "python-agent/base.txt").write_text("base", encoding="utf-8")
+            for name, content in (("overlay-a", "first"), ("overlay-b", "second")):
+                overlay = templates / name
+                overlay.mkdir()
+                (overlay / "payload.txt").write_text(content, encoding="utf-8")
+                (overlay / "overlay-manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "version": "1.0",
+                            "files": [
+                                {"source": "payload.txt", "destination": "docs/conflict.txt"},
+                            ],
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+            original_root = scaffolder.SKILL_ROOT
+            scaffolder.SKILL_ROOT = skill_root
+            try:
+                with self.assertRaisesRegex(ValueError, "conflicting overlay destination"):
+                    scaffolder.scaffold_project(
+                        "python",
+                        "Conflict Agent",
+                        Path(tmp) / "target",
+                        dry_run=True,
+                        overlays=("overlay-a", "overlay-b"),
+                    )
+            finally:
+                scaffolder.SKILL_ROOT = original_root
 
 
 if __name__ == "__main__":

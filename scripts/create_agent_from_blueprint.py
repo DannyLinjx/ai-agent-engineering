@@ -375,6 +375,7 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
     blocked_capabilities = sorted(required - known)
     autonomy = _section(value, "autonomy")
     implementation = _section(value, "implementation")
+    experience = normalize_profiles(value)["experience"]
     governance = _section(value, "data_governance")
     approvals = _string_set(autonomy.get("approval_required_actions"))
     profile = implementation.get("profile", "development")
@@ -397,12 +398,20 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
         "factory/assembly-manifest.json", "factory/release-checklist.json",
         "factory/experience-manifest.json", "factory/memory-manifest.json", "factory/deployment-plan.json",
     ]
+    overlays: list[str] = []
+    if (
+        implementation.get("language") == "python"
+        and experience["profile"] != "headless"
+        and experience["reference_stack"] == "react_fastapi"
+    ):
+        overlays.append("browser-react-fastapi")
     recipe: dict[str, Any] = {
         "version": "1.0",
         "blueprint_id": value.get("blueprint_id", "invalid"),
         "blueprint_hash": content_hash(value),
         "status": "blocked" if blockers else "planned",
         "scaffold": implementation.get("language", "generic"),
+        "overlays": overlays,
         "profile": profile,
         "derived_required": sorted(derived_required),
         "applicable_phases": sorted(phases, key=lambda item: int(item[1:])),
@@ -594,7 +603,12 @@ def _deployment_plan(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[
 
 def apply_blueprint(blueprint: dict[str, Any], recipe: dict[str, Any], target: Path) -> dict[str, Any]:
     target = target.expanduser().resolve()
-    generated = scaffold_project(recipe["scaffold"], blueprint["agent"]["name"], target)
+    generated = scaffold_project(
+        recipe["scaffold"],
+        blueprint["agent"]["name"],
+        target,
+        overlays=tuple(recipe.get("overlays", [])),
+    )
     _configure_integrations(target, blueprint)
     factory = target / "factory"
     write_json(factory / "agent-blueprint.json", blueprint)
