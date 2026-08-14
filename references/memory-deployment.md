@@ -57,6 +57,17 @@ secret configuration, live-data migration, backup changes, or production cutover
 Verify tenant filters, encryption, retention jobs, backup restore, index rebuild,
 outbox lag, migration reconciliation, SLOs, and rollback before claiming readiness.
 
+Generate the deterministic non-mutating topology plan with:
+
+```bash
+python scripts/plan_memory_deployment.py \
+  --request examples/memory-deployment-request.json \
+  --output ./memory-deployment-plan.json
+```
+
+The planner writes only the requested plan file. It does not create a database,
+Compose file, `.env`, service process, account, network listener, or credential.
+
 Validate the generated contract with:
 
 ```bash

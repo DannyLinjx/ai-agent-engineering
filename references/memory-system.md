@@ -26,6 +26,12 @@ Never silently overwrite conflicting memory. Link records, prefer authoritative/
 
 Implement retention, expiration, export, correction, deletion, index rebuild, and consent revocation. Deleting a user/tenant must delete or cryptographically render inaccessible all derived indexes and cached context.
 
+The Python reference scaffold implements this local boundary with frozen contracts,
+`MemoryPolicy`, `SQLiteMemoryStore`, a transactional lifecycle/index outbox,
+`MemoryRetriever`, deterministic JSON export, and Markdown import proposals. It uses
+only the Python standard library; it is a runnable prototype baseline, not evidence
+that an enterprise database or external adapter is installed or verified.
+
 ## Tests
 
 Test that temporary facts are not stored, durable facts are stored with consent, new sessions retrieve only relevant records, duplicates merge, conflicts remain visible, decay changes ranking, sensitive values are rejected/redacted, tenant scopes do not cross, and deletion propagates.

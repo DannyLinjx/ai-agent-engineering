@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -96,6 +97,49 @@ class MemoryPlatformTemplateTests(unittest.TestCase):
             self.assertEqual({path.name for path in root.iterdir()}, {"request.json", "plan.json"})
             self.assertFalse((root / ".env").exists())
             self.assertFalse((root / "compose.yaml").exists())
+
+    def test_scaffolded_python_candidate_runs_local_memory_suite_offline(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "memory-agent"
+            scaffold = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "scaffold_agent_project.py"),
+                    "--language",
+                    "python",
+                    "--name",
+                    "Memory Agent",
+                    "--target",
+                    str(target),
+                ],
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            self.assertEqual(scaffold.returncode, 0, scaffold.stdout)
+            environment = dict(os.environ)
+            environment["PYTHONPATH"] = str(target / "src")
+            environment["PYTHONPYCACHEPREFIX"] = str(Path(tmp) / "pycache")
+            candidate = subprocess.run(
+                [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
+                cwd=target,
+                env=environment,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+
+            self.assertEqual(candidate.returncode, 0, candidate.stdout)
+            self.assertTrue((target / "config/memory.config.json").is_file())
+            memory_source = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in sorted((target / "src/agent_runtime/memory").glob("*.py"))
+            ).casefold()
+            for external_package in ("sqlalchemy", "psycopg", "import mem0", "import redis", "import neo4j"):
+                self.assertNotIn(external_package, memory_source)
 
 
 if __name__ == "__main__":
