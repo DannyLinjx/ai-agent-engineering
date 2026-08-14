@@ -356,6 +356,7 @@ class SkillScriptTests(unittest.TestCase):
             run_script("scaffold_agent_project.py", "--language", "python", "--name", "Demo Agent", "--target", str(project))
             self.assertTrue((project / "src/agent_runtime/runtime.py").is_file())
             self.assertTrue((project / "config/integrations.config.json").is_file())
+            self.assertTrue((project / "config/memory.config.json").is_file())
             self.assertTrue((project / "config/agent-instructions.md").is_file())
             self.assertTrue((project / "config/tool-manifest.json").is_file())
             self.assertTrue((project / "skills").is_dir())

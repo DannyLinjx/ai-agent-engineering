@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "enabled": false,
+  "profile": "local",
+  "canonical_store": "sqlite",
+  "keyword_index": "sqlite_fts5",
+  "vector_index": "none",
+  "graph_store": "none",
+  "framework": "native",
+  "connection": {
+    "database_url": "sqlite:///data/memory.db",
+    "credential_ref": null
+  },
+  "markdown": {
+    "mode": "export_import_proposals"
+  },
+  "consent_required": true,
+  "retention_days": 90,
+  "authorization_before_ranking": true,
+  "one_canonical_store": true
+}

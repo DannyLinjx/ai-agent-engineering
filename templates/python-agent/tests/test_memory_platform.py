@@ -103,6 +103,30 @@ class SQLiteMemoryStoreTests(RecordFactory, unittest.TestCase):
             self.assertIn("deleted", event_types)
             store.close()
 
+    def test_export_is_deterministic_and_markdown_import_returns_proposals(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            store = SQLiteMemoryStore(Path(tmp) / "memory.db")
+            scope = MemoryScope("tenant-a", "alice")
+            store.put(self.record(id="keep"))
+            store.put(self.record(id="remove", summary="Remove me"))
+            store.soft_delete(scope, "remove", now=datetime(2026, 1, 2, tzinfo=timezone.utc))
+
+            first = store.export_records(scope, format="json")
+            second = store.export_records(scope, format="json")
+            markdown = store.export_records(scope, format="markdown")
+            proposals = store.import_markdown_proposals(
+                markdown.replace("Response preference", "Edited response preference"),
+                scope,
+            )
+
+            self.assertEqual(first, second)
+            self.assertIn('"id":"keep"', first)
+            self.assertNotIn('"id":"remove"', first)
+            self.assertEqual(len(proposals), 1)
+            self.assertEqual(proposals[0].source, "markdown_import")
+            self.assertEqual(MemoryPolicy().evaluate(proposals[0]).reason, "consent_required")
+            store.close()
+
 
 class MemoryRetrievalTests(RecordFactory, unittest.TestCase):
     def test_fts_retrieval_filters_scope_expiry_and_bounds_results(self) -> None:

@@ -91,6 +91,7 @@ def scaffold_project(
         "config/agent-config.yaml": SKILL_ROOT / "templates" / "agent-config.yaml",
         "config/agent-instructions.md": SKILL_ROOT / "templates" / "agent-instructions.md",
         "config/integrations.config.json": SKILL_ROOT / "templates" / "integrations.config.json",
+        "config/memory.config.json": SKILL_ROOT / "templates" / "memory.config.json",
         "config/permission-policy.yaml": SKILL_ROOT / "templates" / "permission-policy.yaml",
         "config/tool-manifest.json": SKILL_ROOT / "templates" / "tool-manifest.json",
         "docs/agent-charter.md": SKILL_ROOT / "templates" / "agent-charter.md",

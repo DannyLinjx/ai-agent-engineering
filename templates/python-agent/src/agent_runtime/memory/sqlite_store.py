@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import sqlite3
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -327,3 +329,125 @@ class SQLiteMemoryStore:
                     (_iso(applied_at), event["sequence"]),
                 )
         return len(events)
+
+    def _export_value(self, record: MemoryRecord) -> dict[str, Any]:
+        return {
+            "id": record.id,
+            "tenant_id": record.tenant_id,
+            "user_id": record.user_id,
+            "project_id": record.project_id,
+            "memory_type": record.memory_type,
+            "content": record.content,
+            "summary": record.summary,
+            "source": record.source,
+            "evidence_refs": list(record.evidence_refs),
+            "confidence": record.confidence,
+            "importance": record.importance,
+            "sensitivity": record.sensitivity,
+            "consent_basis": record.consent_basis,
+            "policy_version": record.policy_version,
+            "created_at": _iso(record.created_at),
+            "updated_at": _iso(record.updated_at),
+            "expires_at": _iso(record.expires_at),
+            "status": record.status,
+            "conflict_with_ids": list(record.conflict_with_ids),
+            "supersedes_id": record.supersedes_id,
+            "embedding_model": record.embedding_model,
+            "embedding_version": record.embedding_version,
+        }
+
+    def export_records(
+        self,
+        scope: MemoryScope,
+        *,
+        format: str = "json",
+        include_inactive: bool = False,
+    ) -> str:
+        records = self.list(scope, include_inactive=include_inactive)
+        records.sort(key=lambda item: (item.tenant_id, item.user_id, item.project_id, _iso(item.created_at), item.id))
+        if format == "json":
+            return json.dumps(
+                [self._export_value(record) for record in records],
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        if format != "markdown":
+            raise ValueError("format must be json or markdown")
+        sections = []
+        for record in records:
+            content = json.dumps(record.content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            sections.append(
+                "\n".join(
+                    (
+                        "---",
+                        f"record_id: {record.id}",
+                        f"memory_type: {record.memory_type}",
+                        f"source: {record.source}",
+                        "exported_from: sqlite",
+                        "---",
+                        f"# {record.summary}",
+                        "```json",
+                        content,
+                        "```",
+                    )
+                )
+            )
+        return "\n\n".join(sections) + ("\n" if sections else "")
+
+    def import_markdown_proposals(
+        self,
+        markdown: str,
+        scope: MemoryScope,
+        *,
+        now: datetime | None = None,
+    ) -> list[MemoryRecord]:
+        pattern = re.compile(
+            r"---\n(?P<meta>.*?)\n---\n# (?P<summary>.*?)\n```json\n(?P<content>.*?)\n```",
+            re.DOTALL,
+        )
+        occurred_at = now or datetime.now(timezone.utc)
+        proposals: list[MemoryRecord] = []
+        for match in pattern.finditer(markdown):
+            metadata: dict[str, str] = {}
+            for line in match.group("meta").splitlines():
+                name, separator, value = line.partition(":")
+                if separator:
+                    metadata[name.strip()] = value.strip()
+            if set(metadata) != {"record_id", "memory_type", "source", "exported_from"}:
+                raise ValueError("invalid Markdown Memory metadata")
+            try:
+                content = json.loads(match.group("content"))
+            except json.JSONDecodeError as exc:
+                raise ValueError("invalid Markdown Memory JSON content") from exc
+            fingerprint = "\0".join(
+                (
+                    scope.tenant_id,
+                    scope.user_id,
+                    scope.project_id,
+                    metadata["record_id"],
+                    match.group("summary"),
+                    json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+                )
+            )
+            proposal_id = "import-" + hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()[:20]
+            proposals.append(
+                MemoryRecord(
+                    id=proposal_id,
+                    tenant_id=scope.tenant_id,
+                    user_id=scope.user_id,
+                    project_id=scope.project_id,
+                    memory_type=metadata["memory_type"],
+                    content=content,
+                    summary=match.group("summary").strip(),
+                    source="markdown_import",
+                    evidence_refs=(f"markdown_export:{metadata['record_id']}",),
+                    sensitivity="internal",
+                    consent_basis="none",
+                    created_at=occurred_at,
+                    updated_at=occurred_at,
+                )
+            )
+        if markdown.strip() and not proposals:
+            raise ValueError("no valid Markdown Memory records found")
+        return proposals

@@ -34,8 +34,18 @@ skills:
   lazy: true
 memory:
   enabled: false
+  profile: "local"
+  canonical_store: "sqlite"
+  keyword_index: "sqlite_fts5"
+  vector_index: "none"
+  graph_store: "none"
+  framework: "native"
+  database_url: "sqlite:///data/memory.db"
+  credential_ref: null
+  markdown_mode: "export_import_proposals"
   require_consent: true
   retention_days: 90
+  authorization_before_ranking: true
 storage:
   url: "sqlite:///data/agent.db"
   artifact_root: ".artifacts"
