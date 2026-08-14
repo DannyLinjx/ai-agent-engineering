@@ -44,12 +44,29 @@ AUTH_PROFILES = {"none", "local_account", "server_session", "oidc"}
 REALTIME_PROFILES = {"none", "sse", "websocket"}
 MEMORY_PROFILES = {"local", "hybrid", "enterprise"}
 DELIVERY_ENGAGEMENTS = {"plan_only", "guided_install", "end_to_end"}
+PROFILE_SECTION_KEYS = {
+    "experience": {"profile", "reference_stack", "auth", "realtime", "surfaces"},
+    "memory": {"enabled", "profile", "canonical_store", "keyword_index", "vector_index", "graph_store", "framework"},
+    "delivery": {"engagement"},
+}
+BROWSER_CHAT_CAPABILITIES = {
+    "browser-experience", "session", "checkpoint", "security", "permissions", "verification",
+}
+OPERATIONS_CONSOLE_CAPABILITIES = BROWSER_CHAT_CAPABILITIES | {
+    "observability", "operations", "multi-user-isolation", "audit-and-artifacts", "realtime-events",
+}
+MEMORY_CAPABILITIES = {"memory", "session", "checkpoint", "memory-governance"}
+ENTERPRISE_MEMORY_CAPABILITIES = MEMORY_CAPABILITIES | {
+    "operations", "multi-user-isolation", "memory-migration", "backup-and-recovery",
+}
 PHASE_BY_CAPABILITY = {
     "permissions": "P0", "security": "P0", "runtime": "P1", "planner": "P1", "tools": "P2",
     "session": "P3", "checkpoint": "P3", "context": "P4", "memory": "P5", "skills": "P6",
     "hooks": "P6", "channels": "P7", "subagents": "P7", "mcp": "P7", "verification": "P8",
     "evaluation": "P8", "model-providers": "P9", "model-routing": "P9", "observability": "P10",
     "multi-user-isolation": "P10", "operations": "P10",
+    "browser-experience": "P8", "realtime-events": "P3", "memory-governance": "P5",
+    "audit-and-artifacts": "P8", "memory-migration": "P10", "backup-and-recovery": "P10",
 }
 SCAFFOLD_CAPABILITIES = {
     "runtime", "planner", "tools", "skills", "context", "session", "checkpoint", "memory", "permissions",
@@ -103,6 +120,23 @@ def normalize_profiles(value: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def derive_profile_capabilities(value: dict[str, Any]) -> set[str]:
+    normalized = normalize_profiles(value)
+    experience_profile = normalized["experience"].get("profile")
+    memory = normalized["memory"]
+    derived: set[str] = set()
+    if experience_profile == "browser_chat":
+        derived.update(BROWSER_CHAT_CAPABILITIES)
+    elif experience_profile == "operations_console":
+        derived.update(OPERATIONS_CONSOLE_CAPABILITIES)
+    if memory.get("enabled"):
+        if memory.get("profile") == "enterprise":
+            derived.update(ENTERPRISE_MEMORY_CAPABILITIES)
+        else:
+            derived.update(MEMORY_CAPABILITIES)
+    return derived
+
+
 def _section(value: dict[str, Any], name: str) -> dict[str, Any]:
     child = value.get(name)
     return child if isinstance(child, dict) else {}
@@ -138,6 +172,76 @@ def _approval_trigger(action: str) -> str | None:
     if "external" in words and ({"write", "send", "publish", "post"} & words):
         return "external_write"
     return None
+
+
+def _validate_profile_sections(value: dict[str, Any]) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    for section, allowed_keys in PROFILE_SECTION_KEYS.items():
+        child = value.get(section)
+        if child is None:
+            continue
+        if not isinstance(child, dict):
+            findings.append(issue("invalid-type", "Profile section must be an object", path=section))
+            continue
+        for key in sorted(set(child) - allowed_keys):
+            findings.append(issue("unknown-field", "Unknown profile field", path=f"{section}.{key}"))
+
+    normalized = normalize_profiles(value)
+    experience = normalized["experience"]
+    memory = normalized["memory"]
+    delivery = normalized["delivery"]
+    enum_fields = (
+        ("experience.profile", experience.get("profile"), EXPERIENCE_PROFILES),
+        ("experience.reference_stack", experience.get("reference_stack"), REFERENCE_STACKS),
+        ("experience.auth", experience.get("auth"), AUTH_PROFILES),
+        ("experience.realtime", experience.get("realtime"), REALTIME_PROFILES),
+        ("memory.profile", memory.get("profile"), MEMORY_PROFILES),
+        ("memory.canonical_store", memory.get("canonical_store"), {"sqlite", "postgresql"}),
+        ("memory.keyword_index", memory.get("keyword_index"), {"none", "sqlite_fts5", "postgres_fts"}),
+        ("memory.vector_index", memory.get("vector_index"), {"none", "pgvector", "redis", "qdrant", "milvus", "weaviate", "mem0"}),
+        ("memory.graph_store", memory.get("graph_store"), {"none", "neo4j", "mem0"}),
+        ("memory.framework", memory.get("framework"), {"native", "mem0"}),
+        ("delivery.engagement", delivery.get("engagement"), DELIVERY_ENGAGEMENTS),
+    )
+    for path, actual, allowed in enum_fields:
+        if actual not in allowed:
+            findings.append(issue("invalid-enum", f"Expected one of {sorted(allowed)}", path=path))
+
+    surfaces = experience.get("surfaces")
+    if not isinstance(surfaces, list) or not all(isinstance(item, str) and item for item in surfaces):
+        findings.append(issue("invalid-list", "Experience surfaces must be a list of non-empty strings", path="experience.surfaces"))
+    elif len(surfaces) != len(set(surfaces)):
+        findings.append(issue("duplicate-item", "Experience surfaces must be unique", path="experience.surfaces"))
+    if not isinstance(memory.get("enabled"), bool):
+        findings.append(issue("invalid-type", "Memory enabled must be a boolean", path="memory.enabled"))
+
+    experience_profile = experience.get("profile")
+    if experience_profile in {"browser_chat", "operations_console"}:
+        if experience.get("reference_stack") == "none":
+            findings.append(issue("experience-stack-required", "Browser profiles require a reference stack", path="experience.reference_stack"))
+        if experience.get("auth") == "none":
+            findings.append(issue("experience-auth-required", "Browser profiles require authenticated identity", path="experience.auth"))
+        if experience.get("realtime") == "none":
+            findings.append(issue("experience-realtime-required", "Browser profiles require a realtime observation transport", path="experience.realtime"))
+    elif experience_profile == "headless":
+        if experience.get("reference_stack") != "none" or experience.get("auth") != "none" or experience.get("realtime") != "none" or surfaces:
+            findings.append(issue("headless-profile-conflict", "Headless profile cannot declare browser components", path="experience"))
+
+    if memory.get("enabled"):
+        memory_profile = memory.get("profile")
+        canonical_store = memory.get("canonical_store")
+        if memory_profile in {"hybrid", "enterprise"} and canonical_store != "postgresql":
+            findings.append(issue("enterprise-canonical-store", "Hybrid and enterprise Memory require PostgreSQL as canonical store", path="memory.canonical_store"))
+        if memory_profile == "local" and canonical_store != "sqlite":
+            findings.append(issue("local-canonical-store", "Local Memory requires SQLite as canonical store", path="memory.canonical_store"))
+        if memory.get("vector_index") == "pgvector" and canonical_store != "postgresql":
+            findings.append(issue("pgvector-store-required", "pgvector requires PostgreSQL canonical storage", path="memory.vector_index"))
+        if memory.get("graph_store") == "neo4j":
+            scenarios = _string_set(_section(value, "verification").get("mandatory_scenarios"))
+            graph_terms = ("graph", "relationship", "multi-hop", "图", "关系", "多跳")
+            if not any(any(term in scenario.lower() for term in graph_terms) for scenario in scenarios):
+                findings.append(issue("graph-acceptance-required", "Neo4j requires an explicit graph acceptance scenario", path="memory.graph_store"))
+    return findings
 
 
 def validate_blueprint(value: dict[str, Any]) -> list[dict[str, Any]]:
@@ -236,6 +340,7 @@ def validate_blueprint(value: dict[str, Any]) -> list[dict[str, Any]]:
             if item["risk"] not in {"low", "medium", "high", "critical"} or item["resolution"] not in {"assumed", "resolved", "open"}:
                 issues.append(issue("invalid-decision-item", "Invalid risk or resolution", path=f"{list_name}[{index}]"))
     issues.extend(_inline_credentials(value))
+    issues.extend(_validate_profile_sections(value))
     return issues
 
 
@@ -243,7 +348,9 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
     catalog = read_json(SKILL_ROOT / "assets" / "capability-catalog.json")
     known = set(catalog["capabilities"])
     capabilities = _section(value, "capabilities")
-    required = _string_set(capabilities.get("required"))
+    declared_required = _string_set(capabilities.get("required"))
+    derived_required = derive_profile_capabilities(value)
+    required = declared_required | derived_required
     optional = _string_set(capabilities.get("optional"))
     blockers: list[dict[str, Any]] = validate_blueprint(value)
     for capability in sorted(required - known):
@@ -286,6 +393,7 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
         "status": "blocked" if blockers else "planned",
         "scaffold": implementation.get("language", "generic"),
         "profile": profile,
+        "derived_required": sorted(derived_required),
         "applicable_phases": sorted(phases, key=lambda item: int(item[1:])),
         "capabilities": {
             "selected": selected,
@@ -332,7 +440,8 @@ def _capability_matrix(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dic
     planned = set(recipe["capabilities"]["planned"])
     blocked = set(recipe["capabilities"]["blocked"])
     records = []
-    for capability in sorted(set(blueprint["capabilities"]["required"]) | set(blueprint["capabilities"]["optional"])):
+    required_capabilities = set(blueprint["capabilities"]["required"]) | set(recipe.get("derived_required", []))
+    for capability in sorted(required_capabilities | set(blueprint["capabilities"]["optional"])):
         if capability in selected:
             status, evidence = "implemented", ["generated scaffold", f"factory/build-recipe.json#{capability}"]
         elif capability in blocked:
@@ -343,7 +452,7 @@ def _capability_matrix(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dic
             status, evidence = "not_applicable", ["factory/build-recipe.json#not_applicable"]
         records.append({
             "capability": capability,
-            "required": capability in blueprint["capabilities"]["required"],
+            "required": capability in required_capabilities,
             "status": status,
             "phase": PHASE_BY_CAPABILITY.get(capability, "P0"),
             "files": ["factory/assembly-manifest.json"],
@@ -354,7 +463,7 @@ def _capability_matrix(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dic
 
 
 def _assembly_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[str, Any]:
-    capabilities = set(blueprint["capabilities"]["required"]) | set(blueprint["capabilities"]["optional"])
+    capabilities = set(blueprint["capabilities"]["required"]) | set(blueprint["capabilities"]["optional"]) | set(recipe.get("derived_required", []))
     integrations = blueprint["implementation"]["optional_integrations"]
     return {
         "version": "1.0",
