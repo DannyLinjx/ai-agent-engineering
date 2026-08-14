@@ -18,6 +18,7 @@ TOP_LEVEL_KEYS = {
     "version", "blueprint_id", "agent", "product", "perception", "data_governance",
     "capabilities", "autonomy", "service", "implementation", "verification", "assumptions", "unknowns",
 }
+OPTIONAL_TOP_LEVEL_KEYS = {"experience", "memory", "delivery"}
 SECTION_KEYS = {
     "agent": {"id", "name", "owner"},
     "product": {"objective", "intended_users", "business_workflow", "deliverables", "non_goals", "prohibited_uses", "acceptance_criteria"},
@@ -37,6 +38,12 @@ ENUMS = {
 }
 PERCEPTION_MODALITIES = {"text", "file", "image", "ocr", "history", "external_event"}
 DATA_CLASSES = {"public", "internal", "confidential", "restricted"}
+EXPERIENCE_PROFILES = {"headless", "browser_chat", "operations_console"}
+REFERENCE_STACKS = {"none", "react_fastapi"}
+AUTH_PROFILES = {"none", "local_account", "server_session", "oidc"}
+REALTIME_PROFILES = {"none", "sse", "websocket"}
+MEMORY_PROFILES = {"local", "hybrid", "enterprise"}
+DELIVERY_ENGAGEMENTS = {"plan_only", "guided_install", "end_to_end"}
 PHASE_BY_CAPABILITY = {
     "permissions": "P0", "security": "P0", "runtime": "P1", "planner": "P1", "tools": "P2",
     "session": "P3", "checkpoint": "P3", "context": "P4", "memory": "P5", "skills": "P6",
@@ -67,6 +74,33 @@ def load_blueprint(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError("Blueprint must be a JSON object")
     return value
+
+
+def normalize_profiles(value: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(value)
+    experience = value.get("experience") if isinstance(value.get("experience"), dict) else {}
+    memory = value.get("memory") if isinstance(value.get("memory"), dict) else {}
+    delivery = value.get("delivery") if isinstance(value.get("delivery"), dict) else {}
+    normalized["experience"] = {
+        "profile": "headless",
+        "reference_stack": "none",
+        "auth": "none",
+        "realtime": "none",
+        "surfaces": [],
+        **experience,
+    }
+    normalized["memory"] = {
+        "enabled": False,
+        "profile": "local",
+        "canonical_store": "sqlite",
+        "keyword_index": "sqlite_fts5",
+        "vector_index": "none",
+        "graph_store": "none",
+        "framework": "native",
+        **memory,
+    }
+    normalized["delivery"] = {"engagement": "plan_only", **delivery}
+    return normalized
 
 
 def _section(value: dict[str, Any], name: str) -> dict[str, Any]:
@@ -109,7 +143,7 @@ def _approval_trigger(action: str) -> str | None:
 def validate_blueprint(value: dict[str, Any]) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
     missing = sorted(TOP_LEVEL_KEYS - set(value))
-    unexpected = sorted(set(value) - TOP_LEVEL_KEYS)
+    unexpected = sorted(set(value) - TOP_LEVEL_KEYS - OPTIONAL_TOP_LEVEL_KEYS)
     for key in missing:
         issues.append(issue("missing-field", "Required Blueprint field is missing", path=key))
     for key in unexpected:

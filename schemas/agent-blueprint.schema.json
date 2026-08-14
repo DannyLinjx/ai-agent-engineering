@@ -107,6 +107,37 @@
         }
       }
     },
+    "experience": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "profile": {"enum": ["headless", "browser_chat", "operations_console"]},
+        "reference_stack": {"enum": ["none", "react_fastapi"]},
+        "auth": {"enum": ["none", "local_account", "server_session", "oidc"]},
+        "realtime": {"enum": ["none", "sse", "websocket"]},
+        "surfaces": {
+          "type": "array", "uniqueItems": true,
+          "items": {"enum": ["conversation", "run_inspector", "approvals", "artifacts", "memory", "overview", "runs", "audit", "models", "capabilities", "settings", "access", "health"]}
+        }
+      }
+    },
+    "memory": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "profile": {"enum": ["local", "hybrid", "enterprise"]},
+        "canonical_store": {"enum": ["sqlite", "postgresql"]},
+        "keyword_index": {"enum": ["none", "sqlite_fts5", "postgres_fts"]},
+        "vector_index": {"enum": ["none", "pgvector", "redis", "qdrant", "milvus", "weaviate", "mem0"]},
+        "graph_store": {"enum": ["none", "neo4j", "mem0"]},
+        "framework": {"enum": ["native", "mem0"]}
+      }
+    },
+    "delivery": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "engagement": {"enum": ["plan_only", "guided_install", "end_to_end"]}
+      }
+    },
     "verification": {
       "type": "object", "additionalProperties": false,
       "required": ["mandatory_scenarios", "deterministic_assertions", "eval_thresholds", "security_gates", "verifier_type"],
