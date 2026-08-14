@@ -117,6 +117,42 @@ class BrowserDatabase:
                 event_json TEXT NOT NULL,
                 PRIMARY KEY (tenant_id, user_id, run_id, sequence)
             );
+            CREATE TABLE IF NOT EXISTS browser_approvals (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                tool_name TEXT NOT NULL,
+                tool_version TEXT NOT NULL,
+                parameters_json TEXT NOT NULL,
+                target TEXT NOT NULL,
+                risk TEXT NOT NULL,
+                evidence_refs_json TEXT NOT NULL,
+                action_fingerprint TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                decision TEXT NOT NULL,
+                decision_actor TEXT,
+                decided_at TEXT,
+                resume_job_id TEXT,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, id)
+            );
+            CREATE TABLE IF NOT EXISTS browser_artifacts (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                filename TEXT NOT NULL,
+                media_type TEXT NOT NULL,
+                size_bytes INTEGER NOT NULL,
+                digest TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, id)
+            );
+            CREATE INDEX IF NOT EXISTS browser_artifact_quota_idx
+              ON browser_artifacts (tenant_id, user_id, size_bytes);
             """
         )
         self.connection.commit()

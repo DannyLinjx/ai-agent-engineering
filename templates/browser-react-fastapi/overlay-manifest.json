@@ -50,6 +50,18 @@
       "destination": "src/agent_control/sse.py"
     },
     {
+      "source": "backend/agent_control/approvals.py",
+      "destination": "src/agent_control/approvals.py"
+    },
+    {
+      "source": "backend/agent_control/artifacts.py",
+      "destination": "src/agent_control/artifacts.py"
+    },
+    {
+      "source": "backend/agent_control/memory_api.py",
+      "destination": "src/agent_control/memory_api.py"
+    },
+    {
       "source": "backend/tests/test_events.py",
       "destination": "tests/test_browser_events.py"
     },
@@ -72,6 +84,18 @@
     {
       "source": "backend/tests/test_sse.py",
       "destination": "tests/test_browser_sse.py"
+    },
+    {
+      "source": "backend/tests/test_approvals.py",
+      "destination": "tests/test_browser_approvals.py"
+    },
+    {
+      "source": "backend/tests/test_artifacts.py",
+      "destination": "tests/test_browser_artifacts.py"
+    },
+    {
+      "source": "backend/tests/test_memory_api.py",
+      "destination": "tests/test_browser_memory_api.py"
     }
   ]
 }
