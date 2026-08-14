@@ -160,6 +160,34 @@
     {
       "source": "web/src/app/router.tsx",
       "destination": "web/src/app/router.tsx"
+    },
+    {
+      "source": "web/src/features/workflow.test.tsx",
+      "destination": "web/src/features/workflow.test.tsx"
+    },
+    {
+      "source": "web/src/features/auth/LoginPage.tsx",
+      "destination": "web/src/features/auth/LoginPage.tsx"
+    },
+    {
+      "source": "web/src/features/conversations/ConversationWorkspace.tsx",
+      "destination": "web/src/features/conversations/ConversationWorkspace.tsx"
+    },
+    {
+      "source": "web/src/features/runs/RunInspector.tsx",
+      "destination": "web/src/features/runs/RunInspector.tsx"
+    },
+    {
+      "source": "web/src/features/approvals/ApprovalsPage.tsx",
+      "destination": "web/src/features/approvals/ApprovalsPage.tsx"
+    },
+    {
+      "source": "web/src/features/artifacts/ArtifactsPage.tsx",
+      "destination": "web/src/features/artifacts/ArtifactsPage.tsx"
+    },
+    {
+      "source": "web/src/features/memory/MemoryPage.tsx",
+      "destination": "web/src/features/memory/MemoryPage.tsx"
     }
   ]
 }
