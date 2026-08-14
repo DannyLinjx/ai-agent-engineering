@@ -91,6 +91,10 @@ Memory 和可选运维控制台。浏览器仅显示安全投影；Agent 执行�
 适配器。详见 `references/browser-experience.md` 与
 `references/memory-deployment.md`。
 
+浏览器候选同时包含响应式前端、后端控制面合同、Vitest/TypeScript/Vite 门禁、
+Playwright 桌面/平板/移动端工作流，以及只同步已验证构建产物的打包脚本。依赖
+安装与服务启动仍由用户在后续交付任务中明确选择，Factory 不会自动执行。
+
 ## 设计理念
 
 ### 模型提议，确定性代码决策

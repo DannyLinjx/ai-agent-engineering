@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "commands": [
+    {
+      "id": "browser-backend-contracts",
+      "command": "PYTHONPATH=src python -m unittest discover -s tests -p 'test_browser_*.py' -v",
+      "required": true,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "browser-unit",
+      "command": "pnpm --dir web test",
+      "required": true,
+      "timeout_seconds": 180
+    },
+    {
+      "id": "browser-typecheck",
+      "command": "pnpm --dir web typecheck",
+      "required": true,
+      "timeout_seconds": 180
+    },
+    {
+      "id": "browser-build",
+      "command": "pnpm --dir web build",
+      "required": true,
+      "timeout_seconds": 180
+    },
+    {
+      "id": "browser-e2e",
+      "command": "pnpm --dir web e2e",
+      "required": true,
+      "timeout_seconds": 300
+    }
+  ]
+}

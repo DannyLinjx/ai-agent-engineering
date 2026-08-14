@@ -17,6 +17,13 @@ assets and FastAPI owns authentication, API contracts, durable commands, and saf
 event projection. Frontend build tools are not required in the production Python
 runtime after assets are built.
 
+The reference UI uses an industrial control-ledger visual language: dense evidence
+where operators need it, generous working space around the current task, explicit
+connection/security state, keyboard-visible focus, reduced-motion support, and a
+desktop three-pane workspace that collapses to linear tablet/mobile flow. Routes are
+registered only from the Experience Manifest and administrator surfaces remain
+role-filtered.
+
 ## Control-plane boundary
 
 Follow `assets/browser-control-plane.mmd`:
@@ -67,6 +74,23 @@ python scripts/validate_experience_manifest.py \
 
 Use `examples/local-memory-agent-blueprint.json` for browser chat and
 `examples/browser-enterprise-agent-blueprint.json` for an operations console.
+
+After explicitly installing the generated candidate's selected dependencies, verify
+and package existing build output with:
+
+```bash
+pnpm --dir <agent>/web test
+pnpm --dir <agent>/web typecheck
+pnpm --dir <agent>/web build
+pnpm --dir <agent>/web e2e
+python <agent>/scripts/build_browser_assets.py \
+  --source <agent>/web/dist \
+  --destination <agent>/src/agent_control/static_assets
+```
+
+The sync script downloads nothing, requires a complete index/JavaScript/CSS build,
+accepts only declared static asset types, rejects source/destination nesting and
+non-empty destinations, records hashes, and never copies symlinks.
 
 ## Verification
 

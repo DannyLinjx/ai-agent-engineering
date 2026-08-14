@@ -30,6 +30,10 @@ REQUIRED = [
     "templates/tool-manifest.json", "templates/acceptance-test-plan.md",
     "templates/agent-blueprint.json",
     "templates/browser-react-fastapi/overlay-manifest.json", "templates/browser-react-fastapi/README.overlay.md",
+    "templates/browser-react-fastapi/backend/agent_control/static.py",
+    "templates/browser-react-fastapi/scripts/build_browser_assets.py",
+    "templates/browser-react-fastapi/web/index.html", "templates/browser-react-fastapi/web/package.json",
+    "templates/browser-react-fastapi/web/playwright.config.ts",
     "templates/generic-agent/architecture/module-plan.md", "templates/generic-agent/architecture/memory-adapter-plan.md",
     "templates/generic-agent/tests/contract-test-plan.md",
     "examples/coding-agent.md", "examples/research-agent.md", "examples/enterprise-rag-agent.md",
@@ -43,6 +47,7 @@ REQUIRED = [
     "schemas/integration-config.schema.json", "examples/enterprise-agent-blueprint.json",
     "examples/browser-enterprise-agent-blueprint.json", "examples/local-memory-agent-blueprint.json",
     "examples/memory-deployment-request.json",
+    "examples/acceptance-commands-browser.json",
     "templates/typescript-agent/src/channels/channel-adapter.ts", "templates/typescript-agent/src/models/provider-registry.ts",
     "templates/python-agent/src/agent_runtime/channels.py", "templates/python-agent/src/agent_runtime/providers.py"
 ]

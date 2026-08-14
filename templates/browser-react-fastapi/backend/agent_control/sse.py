@@ -30,7 +30,10 @@ class EventStream:
     @staticmethod
     def encode(event: BrowserRunEvent) -> str:
         data = json.dumps(event.__dict__, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        return f"id: {event.sequence}\nevent: {event.type}\ndata: {data}\n\n"
+        # Keep the wire event unnamed so the browser's EventSource.onmessage
+        # handler receives every allowlisted domain event. The domain type is
+        # already carried in the validated JSON envelope.
+        return f"id: {event.sequence}\ndata: {data}\n\n"
 
     @staticmethod
     def heartbeat() -> str:

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import Cookie, FastAPI, Header, HTTPException, Response
 
 from .auth import AuthService
 from .config import BrowserSettings
 from .db import BrowserDatabase
 from .models import ExperienceResponse, LoginRequest, PrincipalResponse
+from .static import install_spa_routes
 
 
-def create_app(settings: BrowserSettings) -> FastAPI:
+def create_app(settings: BrowserSettings, *, static_root: Path | None = None) -> FastAPI:
     database = BrowserDatabase(settings.database_path)
     auth = AuthService(database, settings)
     app = FastAPI(title="Agent Browser Control Plane", version="1.0.0")
@@ -84,4 +87,6 @@ def create_app(settings: BrowserSettings) -> FastAPI:
         response.delete_cookie("agent_session", path="/")
         response.delete_cookie("agent_csrf", path="/")
 
+    if static_root is not None:
+        install_spa_routes(app, static_root)
     return app

@@ -27,6 +27,10 @@ class EventStreamTests(unittest.TestCase):
 
             self.assertEqual([event.sequence for event in events], [2, 3])
             self.assertEqual(len({event.id for event in events}), len(events))
+            encoded = stream.encode(events[0])
+            self.assertIn("id: 2", encoded)
+            self.assertIn('"type":"step.started"', encoded)
+            self.assertNotIn("\nevent:", encoded)
             with self.assertRaises(KeyError):
                 stream.replay(bob, run.run_id, after=0)
             self.assertIn(": heartbeat", stream.heartbeat())

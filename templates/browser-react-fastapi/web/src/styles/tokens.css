@@ -157,9 +157,9 @@ button:disabled { cursor: not-allowed; opacity: .48; box-shadow: none; }
   .app-frame { grid-template-columns: 1fr; }
   .rail { position: static; height: auto; padding: 16px; }
   .brand-lockup { margin-bottom: 14px; }
-  .rail nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
+  .rail nav { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; }
   .nav-link { min-width: max-content; grid-template-columns: 22px 1fr; }
-  .rail-foot { display: none; }
+  .rail-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
   .workspace { padding-top: 20px; }
   .connection-chip { display: none; }
   .conversation-grid { grid-template-columns: 1fr; }

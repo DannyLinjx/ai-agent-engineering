@@ -62,6 +62,10 @@
       "destination": "src/agent_control/memory_api.py"
     },
     {
+      "source": "backend/agent_control/static.py",
+      "destination": "src/agent_control/static.py"
+    },
+    {
       "source": "backend/requirements-browser.txt",
       "destination": "requirements-browser.txt"
     },
@@ -102,6 +106,14 @@
       "destination": "tests/test_browser_memory_api.py"
     },
     {
+      "source": "backend/tests/test_static.py",
+      "destination": "tests/test_browser_static.py"
+    },
+    {
+      "source": "scripts/build_browser_assets.py",
+      "destination": "scripts/build_browser_assets.py"
+    },
+    {
       "source": "web/package.json",
       "destination": "web/package.json"
     },
@@ -112,6 +124,14 @@
     {
       "source": "web/vite.config.ts",
       "destination": "web/vite.config.ts"
+    },
+    {
+      "source": "web/playwright.config.ts",
+      "destination": "web/playwright.config.ts"
+    },
+    {
+      "source": "web/e2e/browser-workflow.spec.ts",
+      "destination": "web/e2e/browser-workflow.spec.ts"
     },
     {
       "source": "web/index.html",

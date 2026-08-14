@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -64,6 +65,39 @@ class BrowserOverlayTests(unittest.TestCase):
             self.assertIn("conversation", experience["generated_surfaces"])
             for forbidden in ("web/node_modules", ".venv", ".env", "browser.pid"):
                 self.assertFalse((target / forbidden).exists(), forbidden)
+
+    def test_browser_asset_sync_requires_complete_declared_build(self) -> None:
+        script = ROOT / "templates/browser-react-fastapi/scripts/build_browser_assets.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "dist"
+            destination = root / "static"
+            source.mkdir()
+            missing = subprocess.run(
+                [sys.executable, str(script), "--source", str(source), "--destination", str(destination)],
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            self.assertEqual(missing.returncode, 1, missing.stdout)
+            self.assertFalse(destination.exists())
+            (source / "assets").mkdir()
+            (source / "index.html").write_text('<script src="/assets/app.js"></script><link rel="stylesheet" href="/assets/app.css">', encoding="utf-8")
+            (source / "assets/app.js").write_text("console.log('safe')", encoding="utf-8")
+            (source / "assets/app.css").write_text("body{}", encoding="utf-8")
+            built = subprocess.run(
+                [sys.executable, str(script), "--source", str(source), "--destination", str(destination)],
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            self.assertEqual(built.returncode, 0, built.stdout)
+            self.assertTrue((destination / "index.html").is_file())
+            self.assertTrue((destination / "browser-assets.json").is_file())
 
 
 if __name__ == "__main__":
