@@ -10,6 +10,7 @@ from .contracts import (
     MemorySearchResult,
 )
 from .policy import MemoryPolicy
+from .sqlite_store import SQLiteMemoryStore
 
 
 class MemoryManager:
@@ -44,4 +45,5 @@ __all__ = [
     "MemoryRecord",
     "MemoryScope",
     "MemorySearchResult",
+    "SQLiteMemoryStore",
 ]
