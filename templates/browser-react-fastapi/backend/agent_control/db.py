@@ -51,6 +51,72 @@ class BrowserDatabase:
             );
             CREATE INDEX IF NOT EXISTS browser_scoped_object_kind_idx
               ON browser_scoped_objects (tenant_id, user_id, kind, id);
+            CREATE TABLE IF NOT EXISTS browser_conversations (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, id)
+            );
+            CREATE TABLE IF NOT EXISTS browser_messages (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, id)
+            );
+            CREATE TABLE IF NOT EXISTS browser_runs (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                message_id TEXT NOT NULL,
+                profile TEXT NOT NULL,
+                status TEXT NOT NULL,
+                cancel_requested INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, id)
+            );
+            CREATE TABLE IF NOT EXISTS browser_jobs (
+                id TEXT PRIMARY KEY,
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                job_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                available_at TEXT NOT NULL,
+                lease_owner TEXT,
+                lease_token TEXT,
+                lease_expires_at TEXT,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS browser_job_lease_idx
+              ON browser_jobs (status, available_at, lease_expires_at, created_at);
+            CREATE TABLE IF NOT EXISTS browser_idempotency (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, idempotency_key)
+            );
+            CREATE TABLE IF NOT EXISTS browser_run_events (
+                tenant_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                sequence INTEGER NOT NULL,
+                event_json TEXT NOT NULL,
+                PRIMARY KEY (tenant_id, user_id, run_id, sequence)
+            );
             """
         )
         self.connection.commit()

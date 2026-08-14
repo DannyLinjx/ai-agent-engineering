@@ -34,6 +34,22 @@
       "destination": "src/agent_control/api.py"
     },
     {
+      "source": "backend/agent_control/conversations.py",
+      "destination": "src/agent_control/conversations.py"
+    },
+    {
+      "source": "backend/agent_control/runs.py",
+      "destination": "src/agent_control/runs.py"
+    },
+    {
+      "source": "backend/agent_control/worker.py",
+      "destination": "src/agent_control/worker.py"
+    },
+    {
+      "source": "backend/agent_control/sse.py",
+      "destination": "src/agent_control/sse.py"
+    },
+    {
       "source": "backend/tests/test_events.py",
       "destination": "tests/test_browser_events.py"
     },
@@ -44,6 +60,18 @@
     {
       "source": "backend/tests/test_scope.py",
       "destination": "tests/test_browser_scope.py"
+    },
+    {
+      "source": "backend/tests/test_runs.py",
+      "destination": "tests/test_browser_runs.py"
+    },
+    {
+      "source": "backend/tests/test_worker.py",
+      "destination": "tests/test_browser_worker.py"
+    },
+    {
+      "source": "backend/tests/test_sse.py",
+      "destination": "tests/test_browser_sse.py"
     }
   ]
 }
