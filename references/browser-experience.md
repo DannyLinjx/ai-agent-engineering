@@ -47,6 +47,15 @@ login → create/open conversation → send idempotent command → observe Run t
 → decide scoped approval when requested → inspect artifacts/Memory → verified result
 ```
 
+The reference candidate mounts that flow as same-origin `/api/v1` contracts for
+session/Experience discovery, conversations and idempotent messages, Run snapshots,
+cancellation and cursor-addressable Events, approval decisions, authorized artifact
+downloads, and scoped Memory list/delete/export. `create_app(..., memory_port=...)`
+keeps Memory adapter selection explicit; without an injected adapter, Memory routes
+return `503` and the UI displays an unavailable state instead of synthesized records.
+The Worker remains separately invoked and receives the generated Agent execution
+adapter; HTTP request handlers only persist commands and project safe state.
+
 Use server-side sessions, HttpOnly/SameSite cookies, CSRF protection on unsafe
 methods, generic authentication failures, and server-side logout. Every repository
 method takes an immutable principal containing tenant, user, role, and session.
@@ -79,6 +88,7 @@ After explicitly installing the generated candidate's selected dependencies, ver
 and package existing build output with:
 
 ```bash
+python -m pip install -r <agent>/requirements-browser-dev.txt
 pnpm --dir <agent>/web test
 pnpm --dir <agent>/web typecheck
 pnpm --dir <agent>/web build

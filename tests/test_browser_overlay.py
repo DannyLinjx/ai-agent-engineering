@@ -58,8 +58,10 @@ class BrowserOverlayTests(unittest.TestCase):
 
             self.assertTrue((target / "src/agent_control/events.py").is_file())
             self.assertTrue((target / "tests/test_browser_events.py").is_file())
+            self.assertTrue((target / "tests/test_browser_api.py").is_file())
             self.assertTrue((target / "web/index.html").is_file())
             self.assertTrue((target / "web/package.json").is_file())
+            self.assertTrue((target / "web/src/app/RuntimeRoot.tsx").is_file())
             experience = json.loads((target / "config/experience.config.json").read_text(encoding="utf-8"))
             self.assertEqual(experience["status"], "generated")
             self.assertIn("conversation", experience["generated_surfaces"])

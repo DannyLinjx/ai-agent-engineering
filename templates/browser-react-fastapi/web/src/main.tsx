@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import { AppRouter } from "./app/router";
+import { RuntimeRoot } from "./app/RuntimeRoot";
 import type { ExperienceConfig } from "./app/shell/AppShell";
 import "./styles/tokens.css";
 
@@ -18,12 +19,13 @@ const fallbackConfig: ExperienceConfig = {
   role: "operator",
   surfaces: ["conversation", "run_inspector", "approvals", "artifacts", "memory"],
 };
+const injectedConfig = window.__AGENT_EXPERIENCE__;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppRouter config={window.__AGENT_EXPERIENCE__ ?? fallbackConfig} />
+        {injectedConfig ? <AppRouter config={injectedConfig} /> : <RuntimeRoot projectName={fallbackConfig.projectName} />}
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,

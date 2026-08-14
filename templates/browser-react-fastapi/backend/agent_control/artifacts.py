@@ -87,7 +87,7 @@ class ArtifactRepository:
             raise
         return ArtifactProjection(artifact_id, run_id, filename, media_type, len(data), digest, created_at)
 
-    def _metadata(self, principal: Principal, artifact_id: str) -> ArtifactProjection:
+    def metadata(self, principal: Principal, artifact_id: str) -> ArtifactProjection:
         row = self.database.connection.execute(
             """SELECT * FROM browser_artifacts
                WHERE tenant_id = ? AND user_id = ? AND id = ?""",
@@ -97,8 +97,19 @@ class ArtifactRepository:
             raise KeyError(artifact_id)
         return ArtifactProjection(row["id"], row["run_id"], row["filename"], row["media_type"], row["size_bytes"], row["digest"], row["created_at"])
 
+    def list(self, principal: Principal) -> list[ArtifactProjection]:
+        rows = self.database.connection.execute(
+            """SELECT * FROM browser_artifacts
+               WHERE tenant_id = ? AND user_id = ? ORDER BY created_at DESC, id""",
+            (principal.tenant_id, principal.user_id),
+        ).fetchall()
+        return [
+            ArtifactProjection(row["id"], row["run_id"], row["filename"], row["media_type"], row["size_bytes"], row["digest"], row["created_at"])
+            for row in rows
+        ]
+
     def read(self, principal: Principal, artifact_id: str) -> bytes:
-        artifact = self._metadata(principal, artifact_id)
+        artifact = self.metadata(principal, artifact_id)
         object_path = (self.objects / artifact.digest[:2] / artifact.digest).resolve()
         if self.objects not in object_path.parents or not object_path.is_file():
             raise FileNotFoundError(artifact_id)

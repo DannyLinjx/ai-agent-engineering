@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from threading import RLock
 from pathlib import Path
 from typing import Any
 
@@ -11,8 +12,12 @@ from .auth import Principal
 class BrowserDatabase:
     def __init__(self, path: Path) -> None:
         self.path = Path(path)
+        self.lock = RLock()
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.connection = sqlite3.connect(self.path)
+        # FastAPI may execute synchronous dependencies in a worker thread. The
+        # control plane owns this connection within one process; durable Agent
+        # workers open their own BrowserDatabase instead of sharing it.
+        self.connection = sqlite3.connect(self.path, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.connection.execute("PRAGMA foreign_keys=ON")

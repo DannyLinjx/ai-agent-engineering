@@ -19,6 +19,7 @@ export function ConversationWorkspace({
   onCancel,
   onRetry,
   onAttachmentRejected,
+  error,
 }: {
   conversations: Conversation[];
   messages: Message[];
@@ -29,6 +30,7 @@ export function ConversationWorkspace({
   onCancel: (runId: string) => void;
   onRetry: (runId: string) => void;
   onAttachmentRejected: (filename: string) => void;
+  error?: string;
 }) {
   const [draft, setDraft] = useState("");
   const canSend = Boolean(selectedConversationId && draft.trim() && connection !== "closed");
@@ -61,6 +63,7 @@ export function ConversationWorkspace({
         )) : <p className="muted">No conversations yet.</p>}
       </aside>
       <section className="message-stage" aria-label="Conversation messages">
+        {error ? <div className="state-banner error">{error}</div> : null}
         {connection === "reconnecting" ? <div className="state-banner warning">Connection interrupted. Replaying from the last Event cursor…</div> : null}
         {connection === "closed" ? <div className="state-banner error">Live updates are closed. Retry before sending new work.</div> : null}
         <div className="message-scroll" aria-live="polite">

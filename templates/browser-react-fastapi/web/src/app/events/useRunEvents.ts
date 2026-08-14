@@ -40,8 +40,12 @@ export function useRunEvents(runId: string | null, onGap: () => void): RunEventS
     const source = new EventSource(`/api/v1/runs/${encodeURIComponent(runId)}/events?after=${cursorRef.current}`);
     source.onopen = () => dispatch({ type: "connection", connection: "live" });
     source.onmessage = (message) => {
-      const parsed = runEventSchema.safeParse(JSON.parse(message.data));
-      if (parsed.success) dispatch({ type: "event", event: parsed.data });
+      try {
+        const parsed = runEventSchema.safeParse(JSON.parse(message.data));
+        if (parsed.success) dispatch({ type: "event", event: parsed.data });
+      } catch {
+        dispatch({ type: "connection", connection: "reconnecting" });
+      }
     };
     source.onerror = () => dispatch({ type: "connection", connection: "reconnecting" });
     return () => {

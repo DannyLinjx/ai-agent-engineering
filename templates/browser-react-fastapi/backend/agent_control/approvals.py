@@ -100,6 +100,21 @@ class ApprovalRepository:
             "pending",
         )
 
+    def list(self, principal: Principal, *, pending_only: bool = True) -> list[ApprovalProjection]:
+        condition = " AND decision = 'pending'" if pending_only else ""
+        rows = self.database.connection.execute(
+            """SELECT * FROM browser_approvals
+               WHERE tenant_id = ? AND user_id = ?""" + condition + " ORDER BY created_at, id",
+            (principal.tenant_id, principal.user_id),
+        ).fetchall()
+        return [
+            ApprovalProjection(
+                row["id"], row["run_id"], row["tool_name"], row["tool_version"], row["target"], row["risk"],
+                tuple(json.loads(row["evidence_refs_json"])), row["action_fingerprint"], row["expires_at"], row["decision"],
+            )
+            for row in rows
+        ]
+
     def decide(self, principal: Principal, approval_id: str, decision: str, *, now: datetime | None = None) -> None:
         if decision not in {"approved", "rejected"}:
             raise ValueError("decision must be approved or rejected")

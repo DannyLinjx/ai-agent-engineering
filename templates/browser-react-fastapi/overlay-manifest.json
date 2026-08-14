@@ -70,12 +70,20 @@
       "destination": "requirements-browser.txt"
     },
     {
+      "source": "backend/requirements-browser-dev.txt",
+      "destination": "requirements-browser-dev.txt"
+    },
+    {
       "source": "backend/tests/test_events.py",
       "destination": "tests/test_browser_events.py"
     },
     {
       "source": "backend/tests/test_auth.py",
       "destination": "tests/test_browser_auth.py"
+    },
+    {
+      "source": "backend/tests/test_api.py",
+      "destination": "tests/test_browser_api.py"
     },
     {
       "source": "backend/tests/test_scope.py",
@@ -158,6 +166,10 @@
       "destination": "web/src/app/api/client.ts"
     },
     {
+      "source": "web/src/app/api/controlPlane.ts",
+      "destination": "web/src/app/api/controlPlane.ts"
+    },
+    {
       "source": "web/src/app/api/client.test.ts",
       "destination": "web/src/app/api/client.test.ts"
     },
@@ -176,6 +188,10 @@
     {
       "source": "web/src/app/shell/AppShell.tsx",
       "destination": "web/src/app/shell/AppShell.tsx"
+    },
+    {
+      "source": "web/src/app/RuntimeRoot.tsx",
+      "destination": "web/src/app/RuntimeRoot.tsx"
     },
     {
       "source": "web/src/app/router.tsx",
