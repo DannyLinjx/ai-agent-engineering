@@ -1,0 +1,3 @@
+export function SettingsPage({ configFingerprint, pendingChanges }: { configFingerprint: string | null; pendingChanges: number }) {
+  return <section className="settings-sheet"><span className="plate">ADMIN CONTROL</span><h2>Governed settings</h2><p>Configuration changes require validation, provenance, rollout, and rollback. This surface never resolves SecretRefs.</p><dl><div><dt>Effective fingerprint</dt><dd><code>{configFingerprint ?? "Not projected"}</code></dd></div><div><dt>Pending review</dt><dd>{pendingChanges}</dd></div></dl><button className="secondary-button" disabled>Changes require configured backend policy</button></section>;
+}

@@ -397,6 +397,7 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
         "factory/agent-blueprint.json", "factory/build-recipe.json", "factory/capability-matrix.json",
         "factory/assembly-manifest.json", "factory/release-checklist.json",
         "factory/experience-manifest.json", "factory/memory-manifest.json", "factory/deployment-plan.json",
+        "config/experience.config.json",
     ]
     overlays: list[str] = []
     if (
@@ -429,7 +430,11 @@ def build_recipe(value: dict[str, Any]) -> dict[str, Any]:
             "python scripts/validate_agent_architecture.py --project . --json",
             "python scripts/audit_agent_safety.py --project . --json",
             "python -m unittest discover -s tests -v",
-        ],
+        ] + ([
+            "pnpm --dir web test",
+            "pnpm --dir web typecheck",
+            "pnpm --dir web build",
+        ] if overlays else []),
     }
     recipe["recipe_hash"] = content_hash(recipe)
     return recipe
@@ -511,6 +516,7 @@ def _experience_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> d
     elif profile == "operations_console":
         default_surfaces = OPERATIONS_SURFACES
     surfaces = sorted(default_surfaces | _string_set(experience.get("surfaces")))
+    generated = "browser-react-fastapi" in recipe.get("overlays", [])
     return {
         "version": "1.0",
         "blueprint_id": blueprint["blueprint_id"],
@@ -518,9 +524,9 @@ def _experience_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> d
         "reference_stack": experience["reference_stack"],
         "auth": experience["auth"],
         "realtime": experience["realtime"],
-        "status": "not_applicable" if profile == "headless" else "planned",
-        "generated_surfaces": [],
-        "planned_surfaces": surfaces,
+        "status": "not_applicable" if profile == "headless" else ("generated" if generated else "planned"),
+        "generated_surfaces": surfaces if generated else [],
+        "planned_surfaces": [] if generated else surfaces,
         "safe_events": list(SAFE_BROWSER_EVENTS) if profile != "headless" else [],
         "boundaries": {
             "api_executes_agent": False,
@@ -615,7 +621,9 @@ def apply_blueprint(blueprint: dict[str, Any], recipe: dict[str, Any], target: P
     write_json(factory / "build-recipe.json", recipe)
     write_json(factory / "capability-matrix.json", _capability_matrix(blueprint, recipe))
     write_json(factory / "assembly-manifest.json", _assembly_manifest(blueprint, recipe))
-    write_json(factory / "experience-manifest.json", _experience_manifest(blueprint, recipe))
+    experience_manifest = _experience_manifest(blueprint, recipe)
+    write_json(factory / "experience-manifest.json", experience_manifest)
+    write_json(target / "config" / "experience.config.json", experience_manifest)
     write_json(factory / "memory-manifest.json", _memory_manifest(blueprint, recipe))
     write_json(factory / "deployment-plan.json", _deployment_plan(blueprint, recipe))
     release = {

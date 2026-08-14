@@ -15,3 +15,10 @@ class PrincipalResponse(BaseModel):
     tenant_id: str
     user_id: str
     role: str
+
+
+class ExperienceResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    profile: str
+    surfaces: list[str]
+    role: str

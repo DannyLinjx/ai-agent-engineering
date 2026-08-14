@@ -166,6 +166,10 @@
       "destination": "web/src/features/workflow.test.tsx"
     },
     {
+      "source": "web/src/features/operations.test.tsx",
+      "destination": "web/src/features/operations.test.tsx"
+    },
+    {
       "source": "web/src/features/auth/LoginPage.tsx",
       "destination": "web/src/features/auth/LoginPage.tsx"
     },
@@ -188,6 +192,34 @@
     {
       "source": "web/src/features/memory/MemoryPage.tsx",
       "destination": "web/src/features/memory/MemoryPage.tsx"
+    },
+    {
+      "source": "web/src/features/overview/OverviewPage.tsx",
+      "destination": "web/src/features/overview/OverviewPage.tsx"
+    },
+    {
+      "source": "web/src/features/audit/AuditPage.tsx",
+      "destination": "web/src/features/audit/AuditPage.tsx"
+    },
+    {
+      "source": "web/src/features/models/ModelsPage.tsx",
+      "destination": "web/src/features/models/ModelsPage.tsx"
+    },
+    {
+      "source": "web/src/features/capabilities/CapabilitiesPage.tsx",
+      "destination": "web/src/features/capabilities/CapabilitiesPage.tsx"
+    },
+    {
+      "source": "web/src/features/settings/SettingsPage.tsx",
+      "destination": "web/src/features/settings/SettingsPage.tsx"
+    },
+    {
+      "source": "web/src/features/access/AccessPage.tsx",
+      "destination": "web/src/features/access/AccessPage.tsx"
+    },
+    {
+      "source": "web/src/features/health/HealthPage.tsx",
+      "destination": "web/src/features/health/HealthPage.tsx"
     }
   ]
 }

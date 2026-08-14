@@ -3,10 +3,17 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppShell, type ExperienceConfig, type Surface } from "./shell/AppShell";
 import { ApprovalsPage } from "../features/approvals/ApprovalsPage";
+import { AccessPage } from "../features/access/AccessPage";
 import { ArtifactsPage } from "../features/artifacts/ArtifactsPage";
+import { AuditPage } from "../features/audit/AuditPage";
+import { CapabilitiesPage } from "../features/capabilities/CapabilitiesPage";
 import { ConversationWorkspace } from "../features/conversations/ConversationWorkspace";
+import { HealthPage } from "../features/health/HealthPage";
 import { MemoryPage } from "../features/memory/MemoryPage";
+import { ModelsPage } from "../features/models/ModelsPage";
+import { OverviewPage } from "../features/overview/OverviewPage";
 import { RunInspector } from "../features/runs/RunInspector";
+import { SettingsPage } from "../features/settings/SettingsPage";
 
 function Placeholder({ title, note }: { title: string; note: string }) {
   return <article className="placeholder"><span className="plate">MODULE</span><h2>{title}</h2><p>{note}</p></article>;
@@ -29,6 +36,13 @@ function surfaceElement(surface: Surface, title: string, note: string) {
   if (surface === "approvals") return <ApprovalsPage state="empty" approvals={[]} onDecision={() => undefined} />;
   if (surface === "artifacts") return <ArtifactsPage artifacts={[]} onDownload={() => undefined} />;
   if (surface === "memory") return <MemoryPage state="empty" records={[]} onDelete={() => undefined} onCorrect={() => undefined} onExport={() => undefined} />;
+  if (surface === "overview") return <OverviewPage state="empty" metrics={[]} />;
+  if (surface === "audit") return <AuditPage events={[]} />;
+  if (surface === "models") return <ModelsPage models={[]} />;
+  if (surface === "capabilities") return <CapabilitiesPage capabilities={[]} />;
+  if (surface === "settings") return <SettingsPage configFingerprint={null} pendingChanges={0} />;
+  if (surface === "access") return <AccessPage principals={[]} />;
+  if (surface === "health") return <HealthPage dependencies={[]} />;
   return <Placeholder title={title} note={note} />;
 }
 

@@ -5,7 +5,7 @@ from fastapi import Cookie, FastAPI, Header, HTTPException, Response
 from .auth import AuthService
 from .config import BrowserSettings
 from .db import BrowserDatabase
-from .models import LoginRequest, PrincipalResponse
+from .models import ExperienceResponse, LoginRequest, PrincipalResponse
 
 
 def create_app(settings: BrowserSettings) -> FastAPI:
@@ -54,6 +54,19 @@ def create_app(settings: BrowserSettings) -> FastAPI:
         except PermissionError as exc:
             raise HTTPException(status_code=401, detail="authentication required") from exc
         return PrincipalResponse(tenant_id=principal.tenant_id, user_id=principal.user_id, role=principal.role)
+
+    @app.get("/api/v1/experience", response_model=ExperienceResponse)
+    def experience(agent_session: str | None = Cookie(default=None)) -> ExperienceResponse:
+        if not agent_session:
+            raise HTTPException(status_code=401, detail="authentication required")
+        try:
+            principal = auth.authenticate(agent_session)
+        except PermissionError as exc:
+            raise HTTPException(status_code=401, detail="authentication required") from exc
+        surfaces = list(settings.surfaces)
+        if principal.role != "admin":
+            surfaces = [surface for surface in surfaces if surface not in {"settings", "access"}]
+        return ExperienceResponse(profile=settings.experience_profile, surfaces=surfaces, role=principal.role)
 
     @app.post("/api/v1/auth/logout", status_code=204)
     def logout(

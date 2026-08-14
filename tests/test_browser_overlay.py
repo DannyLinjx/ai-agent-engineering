@@ -59,6 +59,9 @@ class BrowserOverlayTests(unittest.TestCase):
             self.assertTrue((target / "tests/test_browser_events.py").is_file())
             self.assertTrue((target / "web/index.html").is_file())
             self.assertTrue((target / "web/package.json").is_file())
+            experience = json.loads((target / "config/experience.config.json").read_text(encoding="utf-8"))
+            self.assertEqual(experience["status"], "generated")
+            self.assertIn("conversation", experience["generated_surfaces"])
             for forbidden in ("web/node_modules", ".venv", ".env", "browser.pid"):
                 self.assertFalse((target / forbidden).exists(), forbidden)
 
