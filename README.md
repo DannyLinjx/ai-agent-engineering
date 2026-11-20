@@ -1,53 +1,285 @@
-# AI Agent Engineering
+<p align="center">
+  <img src="assets/readme-icon.svg" alt="AI Agent Engineering" width="80" height="80" />
+</p>
 
-AI Agent Engineering provides engineering methods and practical standards for agent systems, covering the full lifecycle from design, building, refactoring, debugging, extension, testing, and auditing to documentation and production delivery.
+<h1 align="center">AI Agent Engineering</h1>
 
-This Skill follows one basic principle: the model makes decisions only within typed contracts, while deterministic code handles authorization, budgets, execution, persistence, and verification. The result is an incremental system that can run, be tested, and be audited, rather than a single script or a prompt-only solution.
+<p align="center">
+  <strong>Build agents with clear contracts, controlled execution, and verifiable results.</strong>
+</p>
 
-Use this Skill to create or upgrade workspace coding agents, durable tool-using agents, research and RAG agents, computer-control agents, and multi-agent systems. It also supports upgrading an existing chatbot or one-shot LLM call into a safe, durable, testable agent system.
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-52525b.svg" /></a>
+  <a href="#requirements"><img alt="Skill scripts: Python 3.10+" src="https://img.shields.io/badge/scripts-Python%203.10%2B-4f6f9f.svg" /></a>
+  <a href="#whats-included"><img alt="Scaffolds: Python and TypeScript" src="https://img.shields.io/badge/scaffolds-Python%20%2B%20TypeScript-706394.svg" /></a>
+</p>
 
-## Contents
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#a-task-with-this-skill">Workflow</a> ·
+  <a href="#installation">Install</a> ·
+  <a href="#whats-included">What's included</a> ·
+  <a href="#reference-guide">Reference guide</a>
+</p>
 
-- [What It Solves](#what-it-solves)
-- [Core Capabilities](#core-capabilities)
-- [Client and Memory Platform Profiles](#client-and-memory-platform-profiles)
-- [Design Principles](#design-principles)
-- [Operating Modes](#operating-modes)
-- [Phased Build P0–P10](#phased-build-p0p10)
-- [Optional Integration Rules](#optional-integration-rules)
-- [When to Use It and When Not To](#when-to-use-it-and-when-not-to)
-- [Quick Start](#quick-start)
-- [Directory Structure](#directory-structure)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration and Contracts](#configuration-and-contracts)
-- [Templates](#templates)
-- [Examples](#examples)
-- [Reference Guide](#reference-guide)
-- [Security and Human Control](#security-and-human-control)
-- [Verification and Deliverables](#verification-and-deliverables)
-- [Combining with Other Skills](#combining-with-other-skills)
-- [FAQ](#faq)
-- [Development and Testing](#development-and-testing)
-- [Contributing](#contributing)
-- [License](#license)
+<p align="center">
+  <img src="assets/readme-workflow.svg" alt="Illustrative workflow: inspect the existing system, define contracts, build an increment, and verify evidence. Deterministic controls apply throughout." width="960" />
+</p>
 
-## What It Solves
+AI Agent Engineering is a reusable Skill for building and improving tool-using agents. Install it in your coding agent, describe the outcome, and work through source inspection, typed contracts, implementation, and verification.
 
-Many coding agents can produce code that runs, but do not necessarily take the following steps on their own:
+- **Start with the repository you have.** Preserve its stack, existing behavior, and unrelated work.
+- **Keep execution under control.** Put authorization, budgets, persistence, and verification in deterministic code.
+- **Add only the integrations you need.** Models, Channels, MCP, memory, and clients remain explicit choices.
+- **Deliver evidence.** Separate what was generated, what ran, and what passed its acceptance criteria.
 
-- Understand the existing repository, engineering constraints, and uncommitted changes before editing.
-- Turn business objectives into typed contracts, capability matrices, and acceptance criteria backed by evidence.
-- Implement security, permissions, budgets, and cancellation as **deterministic code**, rather than relying on the model to follow prompt instructions voluntarily.
-- Distinguish writing a plan from executing it and passing verification.
-- Report `blocked` honestly when tools, authority, or evidence are missing, rather than pretending to be finished.
-- Deliver recoverable sessions, checkpoints, memory, observability, and production-readiness evidence.
-- Treat Channel, Model Provider, and MCP connections as **optional, configurable, replaceable** integrations rather than hard-coded choices.
+The illustration describes the engineering method. The package provides guidance, contracts, scripts, and reference scaffolds; each candidate still needs its own integration and verification.
 
-`ai-agent-engineering` organizes these actions into a reusable agent-engineering workflow. It is not a code generator for a particular framework and does not choose your project's stack. It helps an agent discover, design, implement, verify, and deliver an agent system using production engineering methods.
+## A Task with This Skill
+
+### 1. Inspect the starting point
+
+The host agent reads the actual source, entry points, configuration, and existing changes. It maps the current runtime before proposing a new module. A read-only audit stays read-only.
+
+### 2. Define the contract
+
+Turn the requested outcome into scope, typed boundaries, permitted actions, budgets, and evidence requirements. Keep an existing user-approved plan; use the reference phases only when no plan already applies.
+
+### 3. Build one increment
+
+Implement through the current runtime and permission path. Add tools, memory, clients, or model adapters behind their existing owners. For a new candidate, the Factory turns a Blueprint into a Build Recipe and scaffold files.
+
+### 4. Verify the result
+
+Run the checks appropriate to the change and inspect the actual delivery path. Report passed, failed, skipped, and unverified outcomes separately. Installation, external writes, and release use the authorization required for that action.
+
+For the detailed process, see [the workflow](references/workflow.md), [runtime contracts](references/agent-runtime.md), and [verification guidance](references/testing-and-evaluation.md).
+
+## Quick Start
+
+### Install in your host
+
+For Codex, enter this in a conversation:
+
+```text
+Use $skill-installer to install https://github.com/DannyLinjx/ai-agent-engineering
+```
+
+Keep the complete Skill directory. [Installation](#installation) includes manual Codex, OpenClaw, Hermes Agent, and TRAE instructions.
+
+### Give it a bounded task
+
+```text
+Use $ai-agent-engineering to inspect this repository and implement the smallest
+verified increment for my task. Preserve the current stack, existing changes,
+and authorization boundaries.
+```
+
+For an inspection without changes:
+
+```text
+Use $ai-agent-engineering in AUDIT mode. Review the runtime, tool permissions,
+memory, and recovery. Report evidence and gaps. Do not modify files.
+```
+
+### Review the evidence
+
+Depending on the task, the output can include a source map, capability matrix, typed contracts, a candidate implementation, test results, and delivery or rollback notes. A generated candidate is not a production-readiness claim.
+
+<details>
+<summary>Reference CLI walkthrough: plan, generate, and validate a candidate</summary>
+
+Run these scripts from the Skill root. The Factory and direct-scaffold examples are alternatives; use the paths for your selected candidate and supply your own acceptance-command configuration.
+
+Prerequisites: Python 3.10+ for the Skill scripts and Python 3.11+ for generated Python reference projects. Scripts use only the standard library.
+
+```bash
+# 1. Deterministically plan a candidate from an enterprise Blueprint (without modifying the target directory)
+python3 scripts/create_agent_from_blueprint.py \
+  --blueprint examples/enterprise-agent-blueprint.json \
+  --target ./service-agent \
+  --plan ./build-recipe.json
+
+# 2. Review the Recipe and resolve blockers, then generate a candidate project (without production deployment)
+python3 scripts/create_agent_from_blueprint.py \
+  --blueprint examples/enterprise-agent-blueprint.json \
+  --target ./service-agent \
+  --apply \
+  --report ./creation-report.json
+
+# Or directly create a runnable Python/TypeScript reference scaffold or a language-neutral generic scaffold
+python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
+python3 scripts/scaffold_agent_project.py --language typescript --name "My Agent" --target ./my-agent
+python3 scripts/scaffold_agent_project.py --language generic --name "My Agent" --target ./my-agent
+
+# 3. Generate core-only optional integration configuration (Channel=MCP=none, model=mock)
+python3 scripts/configure_integrations.py --output my-agent/config/integrations.config.json
+
+# 4. Validate integration configuration and classify tests to run or skip by profile
+python3 scripts/validate_integration_config.py --config my-agent/config/integrations.config.json --profile development --json
+
+# 5. Check project architecture and the safety baseline
+python3 scripts/validate_agent_architecture.py --project my-agent --json
+python3 scripts/audit_agent_safety.py --project my-agent --json
+
+# 6. Run acceptance tests and produce a machine-readable evidence report
+python3 scripts/run_agent_acceptance_tests.py --project my-agent \
+  --config examples/acceptance-commands-python.json \
+  --report my-agent/report.json
+
+# 7. Validate this Skill package's own structure before publication
+python3 scripts/validate_skill_structure.py --skill . --json
+```
+
+The Factory is a build-time control plane: `--plan` does not write to the target directory; `--apply` rejects blockers and non-empty targets and generates only candidates and evidence awaiting verification. Production releases, sensitive-data access, and high-risk permissions always retain human approval.
+
+Start with `examples/local-memory-agent-blueprint.json` for browser + local Memory,
+or `examples/browser-enterprise-agent-blueprint.json` for an enterprise operations
+console + PostgreSQL. The Factory writes Experience, Memory, and Deployment
+governance manifests, but does not install dependencies, start services, or deploy.
+
+Always preserve the language and framework of existing projects. Python/TypeScript templates are architectural references, not reasons to migrate languages. The `generic` mode generates only language-neutral configuration, schemas, module plans, and contract-test plans, with no Python/TypeScript source code.
+
+Then copy and complete `templates/agent-charter.md` (agent charter), `templates/capability-matrix.md` (capability matrix), `templates/threat-model.md` (threat model), `templates/agent-config.yaml` (runtime configuration), `templates/permission-policy.yaml` (permission policy), and `templates/acceptance-test-plan.md` (acceptance-test plan). The scaffolds are intentionally minimal: extend storage, migrations, telemetry, Skills, MCP, and business tools through interfaces rather than weakening boundaries.
+
+</details>
+
+## Requirements
+
+- An Agent/IDE that can read `SKILL.md`, such as Codex, OpenClaw, Hermes, or TRAE.
+- Python 3.10+ for the Skill scripts and validators, which use only the standard library.
+- Python 3.11+ for generated Python reference projects, as declared in their [project metadata](templates/python-agent/pyproject.toml).
+- Optional: a Node.js/TypeScript toolchain when using the TypeScript scaffold.
+- Optional: Git for repository status and change inspection.
+- File and terminal permissions for the target repository appropriate to the agent's task.
+
+## Installation
+
+Install the complete `ai-agent-engineering/` directory rather than copying only `SKILL.md`. This Skill loads resources from `scripts/`, `templates/`, `references/`, `schemas/`, `assets/`, `examples/`, and `evals/` as needed.
+
+The installation examples below assume that this Skill is published independently in [DannyLinjx/ai-agent-engineering](https://github.com/DannyLinjx/ai-agent-engineering), with the repository root also serving as the Skill root and directly containing `SKILL.md`.
+
+### Codex
+
+Codex discovers Skills from `$CODEX_HOME/skills`; when `CODEX_HOME` is unset, the default is `~/.codex/skills`.
+
+Installing this repository with Codex's built-in `$skill-installer` is recommended. Enter the following in a Codex conversation:
+
+```text
+Use $skill-installer to install https://github.com/DannyLinjx/ai-agent-engineering
+```
+
+You can also install the complete directory manually:
+
+```bash
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
+CODEX_SKILLS_TARGET="${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$CODEX_SKILLS_TARGET"
+cp -R ai-agent-engineering "$CODEX_SKILLS_TARGET/"
+```
+
+Invoke it in the next conversation turn or a new task after installation. Restart Codex if the Skill list has not refreshed.
+
+Example invocation:
+
+```text
+Use $ai-agent-engineering to build a secure coding agent in this repository, with optional channels, models, and MCP.
+```
+
+<details>
+<summary>Install with OpenClaw, Hermes Agent, or TRAE</summary>
+
+### OpenClaw
+
+OpenClaw supports installation from a local Skill directory. By default, installation targets `skills/` in the current workspace; `--global` installs to the shared `~/.openclaw/skills`:
+
+```bash
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
+cd ai-agent-engineering
+openclaw skills install . --as ai-agent-engineering
+openclaw skills install . --as ai-agent-engineering --global
+```
+
+If the Skill is already installed in the Codex directory, you can also use OpenClaw's official migration commands:
+
+```bash
+openclaw migrate plan codex
+openclaw migrate codex
+```
+
+If installation succeeds but the Skill cannot be invoked, check OpenClaw's Agent allowlist (`agents.defaults.skills` or the Agent's skill list).
+
+### Hermes Agent
+
+Hermes stores user Skills in `~/.hermes/skills/`:
+
+```bash
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
+mkdir -p "$HOME/.hermes/skills"
+cp -R ai-agent-engineering "$HOME/.hermes/skills/"
+hermes skills list
+```
+
+Start a new session and invoke:
+
+```bash
+hermes chat -q "/ai-agent-engineering design and scaffold a research agent with bounded tool permissions"
+```
+
+This package contains many scripts, schemas, and templates. Do not install only a remote `SKILL.md` unless the publisher has verified that all supporting files can be fetched recursively.
+
+### TRAE
+
+Install the complete directory per project:
+
+```bash
+git clone https://github.com/DannyLinjx/ai-agent-engineering.git
+mkdir -p YOUR_PROJECT/.trae/skills
+cp -R ai-agent-engineering YOUR_PROJECT/.trae/skills/
+```
+
+The resulting structure should be:
+
+```text
+YOUR_PROJECT/
+└── .trae/
+    └── skills/
+        └── ai-agent-engineering/
+            ├── SKILL.md
+            ├── scripts/
+            ├── templates/
+            └── ...
+```
+
+You can also upload a complete Skill ZIP in TRAE under Settings → Skills and Commands → Create/Import. TRAE also supports the open `.agents/skills/` directory:
+
+```text
+YOUR_PROJECT/.agents/skills/ai-agent-engineering/SKILL.md
+```
+
+When using `.agents/skills/`, enable the corresponding directory in TRAE settings. Paths may differ across regions, plugin versions, and the standalone IDE; use the current version's settings page as the authority.
+
+</details>
+
+## What's Included
+
+| Resource | What is available |
+| --- | --- |
+| Engineering guidance | Design, build, refactor, audit, debug, extension, evaluation, and delivery workflows |
+| Contracts and scripts | Typed schemas, Blueprint planning, configuration, manifests, architecture checks, and static safety review |
+| Core scaffolds | Python, TypeScript, and language-neutral reference candidates |
+| Browser reference | React/Vite + FastAPI overlay generation for a Python `react_fastapi` selection |
+| Memory | SQLite/FTS5 prototype code and governed deployment plans; selected adapters still need integration |
+| Native and file-store profiles | Planning and manifests; native GUI and encrypted-file/scoped-Markdown adapters remain planned |
+
+Channels and MCP default to `none`; development uses a deterministic `mock` model. Configuration options do not mean every live adapter is implemented. The Factory does not automatically install dependencies, start services, or deploy a candidate.
+
+Blueprint `max_steps=0` can be planned, but the current reference scaffold's apply path rejects it before writing. See [Factory scope](references/agent-factory.md) and [client and memory profiles](#client-and-memory-platform-profiles).
 
 ## Core Capabilities
+
+<details>
+<summary>Explore the full capability matrix</summary>
 
 | Capability Area | What It Covers |
 | --- | --- |
@@ -76,7 +308,37 @@ Many coding agents can produce code that runs, but do not necessarily take the f
 | Production Readiness | Release checklists, canaries, incidents, and rollback |
 | Security Models | Threat models, abuse cases, and denial policies |
 
+</details>
+
+## What It Solves
+
+<details>
+<summary>Background and engineering goals</summary>
+
+AI Agent Engineering provides engineering methods and practical standards for agent systems, covering the full lifecycle from design, building, refactoring, debugging, extension, testing, and auditing to documentation and production delivery.
+
+This Skill follows one basic principle: the model makes decisions only within typed contracts, while deterministic code handles authorization, budgets, execution, persistence, and verification. The result is an incremental system that can run, be tested, and be audited, rather than a single script or a prompt-only solution.
+
+Use this Skill to create or upgrade workspace coding agents, durable tool-using agents, research and RAG agents, computer-control agents, and multi-agent systems. It also supports upgrading an existing chatbot or one-shot LLM call into a safe, durable, testable agent system.
+
+Many coding agents can produce code that runs, but do not necessarily take the following steps on their own:
+
+- Understand the existing repository, engineering constraints, and uncommitted changes before editing.
+- Turn business objectives into typed contracts, capability matrices, and acceptance criteria backed by evidence.
+- Implement security, permissions, budgets, and cancellation as **deterministic code**, rather than relying on the model to follow prompt instructions voluntarily.
+- Distinguish writing a plan from executing it and passing verification.
+- Report `blocked` honestly when tools, authority, or evidence are missing, rather than pretending to be finished.
+- Deliver recoverable sessions, checkpoints, memory, observability, and production-readiness evidence.
+- Treat Channel, Model Provider, and MCP connections as **optional, configurable, replaceable** integrations rather than hard-coded choices.
+
+`ai-agent-engineering` organizes these actions into a reusable agent-engineering workflow. It is not a code generator for a particular framework and does not choose your project's stack. It helps an agent discover, design, implement, verify, and deliver an agent system using production engineering methods.
+
+</details>
+
 ## Client and Memory Platform Profiles
+
+<details>
+<summary>Experience, memory, and delivery choices</summary>
 
 The Factory uses three independent profile groups so that an agent can quickly
 build another agent while preserving an enterprise upgrade path. Experience selects
@@ -117,7 +379,12 @@ snapshots, specific configuration, paths, screenshots, or operational history.
 Those disclosures require separate explicit authorization for the exact content
 and destination; removing the project name alone does not anonymize the material.
 
+</details>
+
 ## Design Principles
+
+<details>
+<summary>Architecture and governed execution diagrams</summary>
 
 ### The Model Proposes; Deterministic Code Decides
 
@@ -200,7 +467,12 @@ Key points:
 
 Detect repeated tool+argument fingerprints and no-progress states. **Never** retry non-idempotent side effects without an idempotency key and reconciliation.
 
+</details>
+
 ## Operating Modes
+
+<details>
+<summary>Select the smallest mode for the task</summary>
 
 Infer the smallest applicable mode from the request. Read-only requests must not modify code or external systems:
 
@@ -216,7 +488,12 @@ Infer the smallest applicable mode from the request. Read-only requests must not
 | TEST | Evaluation and verification tooling | Yes | Executable cases and reports |
 | DOCUMENT | Architecture/operations documentation consistent with current code | Yes | Documentation checked against code |
 
+</details>
+
 ## Phased Build P0–P10
+
+<details>
+<summary>Reference phases and exit gates</summary>
 
 Use the user's existing phases, identifiers, and acceptance entry points first. The table below is a reference dependency order only when no plan already exists; it does not replace the user's plan or require implementing every module at once.
 
@@ -238,6 +515,8 @@ Do not start every module simultaneously. Deliver the **smallest secure closed l
 
 Every phase plan must state its goal, affected files, contracts, migrations, risks, tests, completion criteria, and rollback.
 
+</details>
+
 ## Optional Integration Rules
 
 Channel adapters, live Model Providers, and MCP servers are **independent, user-selectable** integrations:
@@ -252,6 +531,9 @@ Channel adapters, live Model Providers, and MCP servers are **independent, user-
 When the user makes no selection, generate a valid core-only `config/integrations.config.json` and continue. Report selected / skipped / blocked integrations separately.
 
 ## When to Use It and When Not To
+
+<details>
+<summary>Scope and suitable use cases</summary>
 
 ### Suitable Uses
 
@@ -271,217 +553,12 @@ When the user makes no selection, generate a valid core-only `config/integration
 - Execution without an explicit working directory, authorization boundary, or acceptance objective.
 - Unauthorized automatic commits, pushes, deployments, or production-data changes.
 
-## Quick Start
-
-Prerequisite: Python 3.10+ (3.11 recommended). Scripts use only the standard library.
-
-```bash
-# 1. Deterministically plan a candidate from an enterprise Blueprint (without modifying the target directory)
-python3 scripts/create_agent_from_blueprint.py \
-  --blueprint examples/enterprise-agent-blueprint.json \
-  --target ./service-agent \
-  --plan ./build-recipe.json
-
-# 2. Review the Recipe and resolve blockers, then generate a candidate project (without production deployment)
-python3 scripts/create_agent_from_blueprint.py \
-  --blueprint examples/enterprise-agent-blueprint.json \
-  --target ./service-agent \
-  --apply \
-  --report ./creation-report.json
-
-# Or directly create a runnable Python/TypeScript reference scaffold or a language-neutral generic scaffold
-python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
-python3 scripts/scaffold_agent_project.py --language typescript --name "My Agent" --target ./my-agent
-python3 scripts/scaffold_agent_project.py --language generic --name "My Agent" --target ./my-agent
-
-# 3. Generate core-only optional integration configuration (Channel=MCP=none, model=mock)
-python3 scripts/configure_integrations.py --output my-agent/config/integrations.config.json
-
-# 4. Validate integration configuration and classify tests to run or skip by profile
-python3 scripts/validate_integration_config.py --config my-agent/config/integrations.config.json --profile development --json
-
-# 5. Check project architecture and the safety baseline
-python3 scripts/validate_agent_architecture.py --project my-agent --json
-python3 scripts/audit_agent_safety.py --project my-agent --json
-
-# 6. Run acceptance tests and produce a machine-readable evidence report
-python3 scripts/run_agent_acceptance_tests.py --project my-agent \
-  --config examples/acceptance-commands-python.json \
-  --report my-agent/report.json
-
-# 7. Validate this Skill package's own structure before publication
-python3 scripts/validate_skill_structure.py --skill . --json
-```
-
-The Factory is a build-time control plane: `--plan` does not write to the target directory; `--apply` rejects blockers and non-empty targets and generates only candidates and evidence awaiting verification. Production releases, sensitive-data access, and high-risk permissions always retain human approval.
-
-Start with `examples/local-memory-agent-blueprint.json` for browser + local Memory,
-or `examples/browser-enterprise-agent-blueprint.json` for an enterprise operations
-console + PostgreSQL. The Factory writes Experience, Memory, and Deployment
-governance manifests, but does not install dependencies, start services, or deploy.
-
-Always preserve the language and framework of existing projects. Python/TypeScript templates are architectural references, not reasons to migrate languages. The `generic` mode generates only language-neutral configuration, schemas, module plans, and contract-test plans, with no Python/TypeScript source code.
-
-Then copy and complete `templates/agent-charter.md` (agent charter), `templates/capability-matrix.md` (capability matrix), `templates/threat-model.md` (threat model), `templates/agent-config.yaml` (runtime configuration), `templates/permission-policy.yaml` (permission policy), and `templates/acceptance-test-plan.md` (acceptance-test plan). The scaffolds are intentionally minimal: extend storage, migrations, telemetry, Skills, MCP, and business tools through interfaces rather than weakening boundaries.
-
-## Directory Structure
-
-```text
-ai-agent-engineering/
-├── SKILL.md                     # Skill entry: modes, workflow, phase gates, minimum verification
-├── README.md                    # This file
-├── agents/
-│   └── openai.yaml              # Optional Host UI metadata; absence does not affect the core Skill
-├── assets/
-│   ├── architecture-diagram.mmd # Layered architecture diagram
-│   ├── agent-loop.mmd           # Non-negotiable control-loop diagram
-│   ├── permission-flow.mmd      # Permission-flow diagram
-│   ├── subagent-flow.mmd        # Subagent-flow diagram
-│   ├── agent-factory-flow.mmd   # Governed Factory flow from Blueprint to candidate agent
-│   ├── browser-control-plane.mmd# Browser control plane and Worker/SSE boundaries
-│   ├── memory-platform.mmd      # Memory authority, indexes, and lifecycle
-│   ├── capability-catalog.json  # Capability catalog, status, and priorities
-│   └── phase-gates.yaml         # P0–P10 phases and required evidence
-├── references/                  # 20+ module references (load as needed; see Reference Guide)
-├── schemas/                     # Language-neutral contract schemas, including Blueprint and Profile manifests
-├── scripts/                     # Deterministic generation, validation, and audit scripts (standard library only)
-├── templates/
-│   ├── agent-blueprint.json     # Blueprint template with development-safe defaults
-│   ├── agent-charter.md         # Agent charter template
-│   ├── capability-matrix.md     # Capability matrix template
-│   ├── threat-model.md          # Threat model template
-│   ├── agent-config.yaml        # Runtime configuration template
-│   ├── permission-policy.yaml   # Permission policy template
-│   ├── acceptance-test-plan.md  # Acceptance-test plan template
-│   ├── integrations.config.json # Optional integration configuration template
-│   ├── agent-instructions.md    # Minimal safe instruction template
-│   ├── tool-manifest.json       # Empty tool catalog by default
-│   ├── tool-template.py/.ts     # Tool templates
-│   ├── hook-template.py/.ts     # Hook templates
-│   ├── subagent-template.py/.ts # Subagent templates
-│   ├── skill-template.md        # Skill template
-│   ├── generic-agent/           # Language-neutral module and contract-test plans
-│   ├── python-agent/            # Runnable Python reference scaffold
-│   └── typescript-agent/        # Runnable TypeScript reference scaffold
-├── examples/                    # Agent, enterprise Blueprint, configuration, trace, and evaluation examples
-├── evals/
-│   └── evals.json               # 10 evaluation cases for this Skill itself
-└── tests/
-    └── test_scripts.py          # Structure, script, negative safety, and scaffold integration tests
-```
-
-## Requirements
-
-- An Agent/IDE that can read `SKILL.md`, such as Codex, OpenClaw, Hermes, or TRAE.
-- Python 3.10 or later. Scripts use only the standard library; scaffold code uses `X | None` type syntax and cannot run on Python 3.9.
-- Optional: a Node.js/TypeScript toolchain when using the TypeScript scaffold.
-- Optional: Git for repository status and change inspection.
-- File and terminal permissions for the target repository appropriate to the agent's task.
-
-## Installation
-
-Install the complete `ai-agent-engineering/` directory rather than copying only `SKILL.md`. This Skill loads resources from `scripts/`, `templates/`, `references/`, `schemas/`, `assets/`, `examples/`, and `evals/` as needed.
-
-The installation examples below assume that this Skill is published independently in [DannyLinjx/ai-agent-engineering](https://github.com/DannyLinjx/ai-agent-engineering), with the repository root also serving as the Skill root and directly containing `SKILL.md`.
-
-### Codex
-
-Codex discovers Skills from `$CODEX_HOME/skills`; when `CODEX_HOME` is unset, the default is `~/.codex/skills`.
-
-Installing this repository with Codex's built-in `$skill-installer` is recommended. Enter the following in a Codex conversation:
-
-```text
-Use $skill-installer to install https://github.com/DannyLinjx/ai-agent-engineering
-```
-
-You can also install the complete directory manually:
-
-```bash
-git clone https://github.com/DannyLinjx/ai-agent-engineering.git
-CODEX_SKILLS_TARGET="${CODEX_HOME:-$HOME/.codex}/skills"
-mkdir -p "$CODEX_SKILLS_TARGET"
-cp -R ai-agent-engineering "$CODEX_SKILLS_TARGET/"
-```
-
-Invoke it in the next conversation turn or a new task after installation. Restart Codex if the Skill list has not refreshed.
-
-Example invocation:
-
-```text
-Use $ai-agent-engineering to build a secure coding agent in this repository, with optional channels, models, and MCP.
-```
-
-### OpenClaw
-
-OpenClaw supports installation from a local Skill directory. By default, installation targets `skills/` in the current workspace; `--global` installs to the shared `~/.openclaw/skills`:
-
-```bash
-git clone https://github.com/DannyLinjx/ai-agent-engineering.git
-cd ai-agent-engineering
-openclaw skills install . --as ai-agent-engineering
-openclaw skills install . --as ai-agent-engineering --global
-```
-
-If the Skill is already installed in the Codex directory, you can also use OpenClaw's official migration commands:
-
-```bash
-openclaw migrate plan codex
-openclaw migrate codex
-```
-
-If installation succeeds but the Skill cannot be invoked, check OpenClaw's Agent allowlist (`agents.defaults.skills` or the Agent's skill list).
-
-### Hermes Agent
-
-Hermes stores user Skills in `~/.hermes/skills/`:
-
-```bash
-git clone https://github.com/DannyLinjx/ai-agent-engineering.git
-mkdir -p "$HOME/.hermes/skills"
-cp -R ai-agent-engineering "$HOME/.hermes/skills/"
-hermes skills list
-```
-
-Start a new session and invoke:
-
-```bash
-hermes chat -q "/ai-agent-engineering design and scaffold a research agent with bounded tool permissions"
-```
-
-This package contains many scripts, schemas, and templates. Do not install only a remote `SKILL.md` unless the publisher has verified that all supporting files can be fetched recursively.
-
-### TRAE
-
-Install the complete directory per project:
-
-```bash
-git clone https://github.com/DannyLinjx/ai-agent-engineering.git
-mkdir -p YOUR_PROJECT/.trae/skills
-cp -R ai-agent-engineering YOUR_PROJECT/.trae/skills/
-```
-
-The resulting structure should be:
-
-```text
-YOUR_PROJECT/
-└── .trae/
-    └── skills/
-        └── ai-agent-engineering/
-            ├── SKILL.md
-            ├── scripts/
-            ├── templates/
-            └── ...
-```
-
-You can also upload a complete Skill ZIP in TRAE under Settings → Skills and Commands → Create/Import. TRAE also supports the open `.agents/skills/` directory:
-
-```text
-YOUR_PROJECT/.agents/skills/ai-agent-engineering/SKILL.md
-```
-
-When using `.agents/skills/`, enable the corresponding directory in TRAE settings. Paths may differ across regions, plugin versions, and the standalone IDE; use the current version's settings page as the authority.
+</details>
 
 ## Usage
+
+<details>
+<summary>Blueprint, scaffold, integration, and audit commands</summary>
 
 ### Create an Enterprise Agent Candidate from a Blueprint
 
@@ -569,7 +646,12 @@ python3 scripts/validate_skill_structure.py --skill . --json
 | `run_agent_acceptance_tests.py` | Run bounded acceptance commands and generate evidence reports; argv must be an array, never a shell string; `{python}` is replaced with the current interpreter |
 | `validate_skill_structure.py` | Validate this Skill package's structure and internal links |
 
+</details>
+
 ## Configuration and Contracts
+
+<details>
+<summary>Configuration and schema index</summary>
 
 Configuration and state have language-neutral JSON Schemas in `schemas/`, including:
 
@@ -585,7 +667,12 @@ Configuration and state have language-neutral JSON Schemas in `schemas/`, includ
 
 Configuration precedence: defaults → environment profile → tenant → user → Agent → session → Run overrides. Lower scopes cannot weaken deny policies or hard safety limits. Each Run and checkpoint records the effective configuration fingerprint. Never log raw keys.
 
+</details>
+
 ## Templates
+
+<details>
+<summary>Template index</summary>
 
 `templates/` provides:
 
@@ -597,6 +684,8 @@ Configuration precedence: defaults → environment profile → tenant → user �
 - Runnable Python and TypeScript reference scaffolds with architecture tests, plus a generic scaffold that generates no language-specific code.
 
 Templates are deliverable skeletons, not execution evidence. Do not mark a template item passed without actual commands, exit codes, artifacts, or human sign-off.
+
+</details>
 
 ## Examples
 
@@ -620,7 +709,61 @@ Templates are deliverable skeletons, not execution evidence. Do not mark a templ
 | `capability-matrix.json` / `tool-manifest.json` | Machine-readable capability matrix and tool-manifest examples |
 | `eval-cases.jsonl` | Evaluation-case examples |
 
+## Directory Structure
+
+<details>
+<summary>Explore the package layout</summary>
+
+```text
+ai-agent-engineering/
+├── SKILL.md                     # Skill entry: modes, workflow, phase gates, minimum verification
+├── README.md                    # This file
+├── agents/
+│   └── openai.yaml              # Optional Host UI metadata; absence does not affect the core Skill
+├── assets/
+│   ├── architecture-diagram.mmd # Layered architecture diagram
+│   ├── agent-loop.mmd           # Non-negotiable control-loop diagram
+│   ├── permission-flow.mmd      # Permission-flow diagram
+│   ├── subagent-flow.mmd        # Subagent-flow diagram
+│   ├── agent-factory-flow.mmd   # Governed Factory flow from Blueprint to candidate agent
+│   ├── browser-control-plane.mmd# Browser control plane and Worker/SSE boundaries
+│   ├── memory-platform.mmd      # Memory authority, indexes, and lifecycle
+│   ├── capability-catalog.json  # Capability catalog, status, and priorities
+│   └── phase-gates.yaml         # P0–P10 phases and required evidence
+├── references/                  # 20+ module references (load as needed; see Reference Guide)
+├── schemas/                     # Language-neutral contract schemas, including Blueprint and Profile manifests
+├── scripts/                     # Deterministic generation, validation, and audit scripts (standard library only)
+├── templates/
+│   ├── agent-blueprint.json     # Blueprint template with development-safe defaults
+│   ├── agent-charter.md         # Agent charter template
+│   ├── capability-matrix.md     # Capability matrix template
+│   ├── threat-model.md          # Threat model template
+│   ├── agent-config.yaml        # Runtime configuration template
+│   ├── permission-policy.yaml   # Permission policy template
+│   ├── acceptance-test-plan.md  # Acceptance-test plan template
+│   ├── integrations.config.json # Optional integration configuration template
+│   ├── agent-instructions.md    # Minimal safe instruction template
+│   ├── tool-manifest.json       # Empty tool catalog by default
+│   ├── tool-template.py/.ts     # Tool templates
+│   ├── hook-template.py/.ts     # Hook templates
+│   ├── subagent-template.py/.ts # Subagent templates
+│   ├── skill-template.md        # Skill template
+│   ├── generic-agent/           # Language-neutral module and contract-test plans
+│   ├── python-agent/            # Runnable Python reference scaffold
+│   └── typescript-agent/        # Runnable TypeScript reference scaffold
+├── examples/                    # Agent, enterprise Blueprint, configuration, trace, and evaluation examples
+├── evals/
+│   └── evals.json               # 10 evaluation cases for this Skill itself
+└── tests/
+    └── test_scripts.py          # Structure, script, negative safety, and scaffold integration tests
+```
+
+</details>
+
 ## Reference Guide
+
+<details>
+<summary>Module references to load as needed</summary>
 
 Read only the references needed for the task; do not load them all at once:
 
@@ -652,6 +795,8 @@ Read only the references needed for the task; do not load them all at once:
 | Nine steps and stop conditions | `references/workflow.md` |
 | Traceability from requirements to implementation | `references/source-requirements-map.md` |
 
+</details>
+
 ## Security and Human Control
 
 Security is P0, not an optional patch after launch. Model output, retrieved content, memory, Skills, Hooks, MCP metadata/results, and subagent results are **untrusted inputs**. They cannot expand tools, permissions, credentials, workspaces, budgets, or tenant scope.
@@ -676,6 +821,9 @@ Stop and escalate rather than continuing when:
 Missing optional Channels / MCP / live Providers for development is **not** a stop condition.
 
 ## Verification and Deliverables
+
+<details>
+<summary>Verification scope and deliverable contract</summary>
 
 ### Minimum Verification
 
@@ -710,7 +858,12 @@ At completion, report:
 
 Never fabricate tests, tool calls, files, citations, deployment, or production-readiness results.
 
+</details>
+
 ## Combining with Other Skills
+
+<details>
+<summary>Companion skills and handoff examples</summary>
 
 This Skill focuses on building agent systems. It can be combined with two independently published companion Skills: [engineering-coding-job](https://github.com/DannyLinjx/engineering-coding-job) and [loop-engineering](https://github.com/DannyLinjx/loop-engineering):
 
@@ -736,7 +889,12 @@ Do not commit, push, deploy, or configure live providers.
 
 When combining these Skills, the Loop verifier should inspect actual test results, gate output, and artifacts rather than only checking that a report file exists.
 
+</details>
+
 ## FAQ
+
+<details>
+<summary>Installation, runtime requirements, and safety questions</summary>
 
 ### The Skill Is Not Found After Installation
 
@@ -756,7 +914,7 @@ The core runtime, deterministic tests, and offline evaluations should not depend
 
 ### Why Do Tests Fail on Python 3.9?
 
-The scaffolds and some scripts use Python 3.10+ syntax, such as `X | None`. Use Python 3.10 or later; 3.11 is recommended.
+Some scripts use Python 3.10+ syntax, such as `X | None`. Use Python 3.10+ for the Skill scripts and Python 3.11+ for generated Python reference projects.
 
 ### Does It Automatically Commit / Push / Deploy?
 
@@ -770,13 +928,47 @@ No. `audit_agent_safety.py` performs conservative static analysis and requires h
 
 Pull the new version from GitHub and replace the old version with the complete new directory. Preserve your own modified configuration and templates before replacing them. Store running-agent data—sessions, checkpoints, and state—outside the Skill directory.
 
+</details>
+
+## Contents
+
+<details>
+<summary>Complete section navigation</summary>
+
+- [What It Solves](#what-it-solves)
+- [Core Capabilities](#core-capabilities)
+- [Client and Memory Platform Profiles](#client-and-memory-platform-profiles)
+- [Design Principles](#design-principles)
+- [Operating Modes](#operating-modes)
+- [Phased Build P0–P10](#phased-build-p0p10)
+- [Optional Integration Rules](#optional-integration-rules)
+- [When to Use It and When Not To](#when-to-use-it-and-when-not-to)
+- [Quick Start](#quick-start)
+- [Directory Structure](#directory-structure)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration and Contracts](#configuration-and-contracts)
+- [Templates](#templates)
+- [Examples](#examples)
+- [Reference Guide](#reference-guide)
+- [Security and Human Control](#security-and-human-control)
+- [Verification and Deliverables](#verification-and-deliverables)
+- [Combining with Other Skills](#combining-with-other-skills)
+- [FAQ](#faq)
+- [Development and Testing](#development-and-testing)
+- [Contributing](#contributing)
+- [License](#license)
+
+</details>
+
 ## Development and Testing
 
 ```bash
 # Validate package structure and internal links
 python3 scripts/validate_skill_structure.py --skill . --json
 
-# Run all tests (Python 3.10+ required)
+# Run all tests with Python 3.11+ for the generated Python reference projects
 python3 -m unittest discover -s tests -v
 ```
 

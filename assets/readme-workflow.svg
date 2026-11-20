@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="460" viewBox="0 0 1200 460" fill="none" role="img" aria-labelledby="workflow-title workflow-description">
+  <title id="workflow-title">Illustrative engineering workflow</title>
+  <desc id="workflow-description">Inspect, define, build, and verify. Deterministic code owns authorization, budgets, execution, and verification throughout the workflow. This is a conceptual diagram.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1 1L6 4L1 7" stroke="#8493AC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="1" y="1" width="1198" height="458" rx="24" fill="#F7F8FC" stroke="#E2E7F0" stroke-width="2"/>
+  <g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <text x="56" y="57" fill="#172033" font-size="28" font-weight="650" letter-spacing="-0.5">Illustrative engineering workflow</text>
+    <text x="56" y="87" fill="#566074" font-size="15">A clear sequence for building and evaluating a governed agent.</text>
+
+    <path d="M312 211H328" stroke="#8493AC" stroke-width="1.8" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <path d="M592 211H608" stroke="#8493AC" stroke-width="1.8" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <path d="M872 211H888" stroke="#8493AC" stroke-width="1.8" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+    <rect x="56" y="130" width="248" height="164" rx="16" fill="#FFFFFF" stroke="#DCE3EF" stroke-width="1.5"/>
+    <circle cx="90" cy="171" r="18" fill="#EBF1FF"/>
+    <text x="90" y="176" text-anchor="middle" fill="#36528C" font-size="12" font-weight="700">01</text>
+    <text x="120" y="179" fill="#172033" font-size="23" font-weight="650" letter-spacing="-0.3">Inspect</text>
+    <text x="78" y="224" fill="#4B586D" font-size="14">
+      <tspan x="78" dy="0">Understand the task,</tspan>
+      <tspan x="78" dy="23">scope, and existing system.</tspan>
+    </text>
+
+    <rect x="336" y="130" width="248" height="164" rx="16" fill="#FFFFFF" stroke="#DCE3EF" stroke-width="1.5"/>
+    <circle cx="370" cy="171" r="18" fill="#F0ECFC"/>
+    <text x="370" y="176" text-anchor="middle" fill="#64518B" font-size="12" font-weight="700">02</text>
+    <text x="400" y="179" fill="#172033" font-size="23" font-weight="650" letter-spacing="-0.3">Define</text>
+    <text x="358" y="224" fill="#4B586D" font-size="14">
+      <tspan x="358" dy="0">Specify contracts,</tspan>
+      <tspan x="358" dy="23">boundaries, and acceptance.</tspan>
+    </text>
+
+    <rect x="616" y="130" width="248" height="164" rx="16" fill="#FFFFFF" stroke="#DCE3EF" stroke-width="1.5"/>
+    <circle cx="650" cy="171" r="18" fill="#EBF1FF"/>
+    <text x="650" y="176" text-anchor="middle" fill="#36528C" font-size="12" font-weight="700">03</text>
+    <text x="680" y="179" fill="#172033" font-size="23" font-weight="650" letter-spacing="-0.3">Build</text>
+    <text x="638" y="224" fill="#4B586D" font-size="14">
+      <tspan x="638" dy="0">Implement one increment</tspan>
+      <tspan x="638" dy="23">through governed interfaces.</tspan>
+    </text>
+
+    <rect x="896" y="130" width="248" height="164" rx="16" fill="#FFFFFF" stroke="#DCE3EF" stroke-width="1.5"/>
+    <circle cx="930" cy="171" r="18" fill="#F0ECFC"/>
+    <text x="930" y="176" text-anchor="middle" fill="#64518B" font-size="12" font-weight="700">04</text>
+    <text x="960" y="179" fill="#172033" font-size="23" font-weight="650" letter-spacing="-0.3">Verify</text>
+    <text x="918" y="224" fill="#4B586D" font-size="14">
+      <tspan x="918" dy="0">Check behavior and evidence</tspan>
+      <tspan x="918" dy="23">against explicit criteria.</tspan>
+    </text>
+
+    <rect x="56" y="320" width="1088" height="98" rx="16" fill="#EDF1F8" stroke="#DCE3EF" stroke-width="1.5"/>
+    <text x="80" y="347" fill="#566074" font-size="11" font-weight="700" letter-spacing="1.4">DETERMINISTIC CONTROLS</text>
+
+    <g stroke="#49648F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="80" y="368" width="22" height="22" rx="6" fill="#FFFFFF" stroke="#C9D4E6" stroke-width="1.2"/>
+      <path d="M86 379L90 383L97 375"/>
+      <rect x="348" y="368" width="22" height="22" rx="6" fill="#FFFFFF" stroke="#C9D4E6" stroke-width="1.2"/>
+      <path d="M354 379L358 383L365 375"/>
+      <rect x="616" y="368" width="22" height="22" rx="6" fill="#FFFFFF" stroke="#C9D4E6" stroke-width="1.2"/>
+      <path d="M622 379L626 383L633 375"/>
+      <rect x="884" y="368" width="22" height="22" rx="6" fill="#FFFFFF" stroke="#C9D4E6" stroke-width="1.2"/>
+      <path d="M890 379L894 383L901 375"/>
+    </g>
+    <text x="114" y="385" fill="#24334D" font-size="16" font-weight="600">Authorization</text>
+    <text x="382" y="385" fill="#24334D" font-size="16" font-weight="600">Budgets</text>
+    <text x="650" y="385" fill="#24334D" font-size="16" font-weight="600">Execution</text>
+    <text x="918" y="385" fill="#24334D" font-size="16" font-weight="600">Verification</text>
+    <text x="56" y="443" fill="#647087" font-size="12">Conceptual sequence. Apply the scope and acceptance criteria for each task.</text>
+  </g>
+</svg>
