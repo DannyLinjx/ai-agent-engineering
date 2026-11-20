@@ -17,7 +17,7 @@ The upgrade remains configuration-driven, backward compatible, and limited to th
 
 The browser architecture and delivery sequence are based on the completed Altair control-plane worktree, especially:
 
-- `/Users/danny/Documents/Altair/altair-performance-agent/.worktrees/altair-control-plane/docs/ARCHITECTURE.md`;
+- `<existing-project-root>/docs/ARCHITECTURE.md`;
 - `web/src/features/conversations/ConversationWorkspace.tsx`;
 - `web/src/features/runs/useRunEvents.ts`;
 - `web/src/app/api/client.ts`;

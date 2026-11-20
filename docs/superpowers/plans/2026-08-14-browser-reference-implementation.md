@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Modify only `/Users/danny/Documents/skills/ai-agent-engineering`.
+- Modify only the selected `<skill-root>`.
 - The Browser overlay is generated only when selected; headless scaffolds remain unchanged.
 - API request handlers never run Agent tools or resolve model credentials.
 - Browser Events use the safe allowlist and never expose hidden reasoning, raw secrets, environment variables, unrestricted output, or absolute system paths.

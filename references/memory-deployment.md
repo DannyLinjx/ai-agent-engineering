@@ -6,18 +6,30 @@ write, retrieval, conflict, and lifecycle rules.
 
 ## Profile decision
 
+The table contains reference database choices for new deployments, not a mandate
+to migrate an existing application. Preserve its encryption, payload boundaries
+and user-approved readable-file semantics unless migration is part of the task.
+
 | Profile | Canonical store | Derived indexes | Default use |
 |---|---|---|---|
 | `local` | SQLite | SQLite FTS5 | prototype, local user, fast recovery |
 | `hybrid` | PostgreSQL | Postgres FTS plus optional vector/graph adapter | shared service growing beyond one process |
 | `enterprise` | PostgreSQL | governed Postgres FTS, optional pgvector/Redis/Qdrant/Milvus/Weaviate/Mem0 and optional Neo4j | multi-user production with backup, SLO, migration, and audit |
 
-Exactly one canonical store owns each Memory record. Vector databases, graph stores,
-and frameworks are projections or adapters, never competing sources of truth. Markdown
-is an explicit human-readable export/import boundary, not a concurrent database.
+Exactly one canonical authority owns each logical Memory record. This does not
+require one physical database for every data class. Select reviewed storage
+adapters and encryption/consent rules for each class. Document ownership,
+versioning, atomicity and lifecycle for
+each class; two writable authorities for the same record remain prohibited. Vector
+databases, graph stores and frameworks are projections/adapters. Markdown is an
+export/import boundary in the bundled SQLite prototype, but may be the selected
+canonical representation for an existing scoped record type; it is not permission
+to bypass policy, encryption requirements or actor/source isolation.
 
-Start with SQLite + FTS5 unless scale, availability, tenancy, or an already-operated
-platform requires more. Add vector retrieval only when keyword/structured baselines
+For a new database-backed prototype, SQLite + FTS5 is a reference starting point.
+For an existing file/encrypted-payload design, retain its selected store/adapter and
+mark unavailable scaffold implementations as planned, not generated or verified.
+Do not choose infrastructure solely because a template lacks its adapter. Add vector retrieval only when keyword/structured baselines
 fail a measured recall criterion. Add graph storage only for a declared relationship
 query and acceptance scenario. Add Mem0 or another framework only behind `MemoryPort`;
 do not let it bypass consent, scope, provenance, correction, deletion, or audit policy.
@@ -52,8 +64,10 @@ and `end_to_end` mean the implementing Agent may later guide or execute approved
 steps; they never grant installation, credential, network, migration, or production
 authority by themselves.
 
-Require explicit approval before system dependency installation, network exposure,
+Require applicable authorization before system dependency installation, network exposure,
 secret configuration, live-data migration, backup changes, or production cutover.
+Reuse an existing authorization only within its actual action/data/target/risk scope;
+a profile or download permission is not authority to migrate user data or emit tracing.
 Verify tenant filters, encryption, retention jobs, backup restore, index rebuild,
 outbox lag, migration reconciliation, SLOs, and rollback before claiming readiness.
 

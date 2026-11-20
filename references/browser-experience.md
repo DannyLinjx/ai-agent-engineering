@@ -1,8 +1,10 @@
 # Browser experience
 
-Use a Browser Experience when users need conversation, Run inspection, approvals,
-artifacts, Memory, or operations without a terminal. The Browser is a governed
-projection of server-owned Agent state; it is not the Agent runtime.
+Use a Browser Experience when the user selects a browser product. Native GUI and
+CLI clients are separate valid choices; do not add a web server/WebView to fit this
+reference. Read [client-experience.md](client-experience.md) for shared interaction,
+message and UI contracts, or [native-cli-client.md](native-cli-client.md) for a native
+adapter. The browser is a governed projection of server-owned state, not the Runtime.
 
 ## Profiles
 
@@ -17,12 +19,14 @@ assets and FastAPI owns authentication, API contracts, durable commands, and saf
 event projection. Frontend build tools are not required in the production Python
 runtime after assets are built.
 
-The reference UI uses an industrial control-ledger visual language: dense evidence
-where operators need it, generous working space around the current task, explicit
-connection/security state, keyboard-visible focus, reduced-motion support, and a
-desktop three-pane workspace that collapses to linear tablet/mobile flow. Routes are
-registered only from the Experience Manifest and administrator surfaces remain
-role-filtered.
+The industrial control-ledger/three-pane reference suits an operations console; it
+is not a universal end-user chat design. For conversation-first products, keep the
+composer/messages primary, place resource settings behind the account/settings
+entry, and open inspector/evidence on demand. Required surfaces in the table mean
+reachable functionality, not permanent navigation or empty cards on the home page.
+Preserve the selected visual baseline, keyboard-visible focus, reduced motion and
+responsive layout. Routes come from the Experience Manifest; administrator surfaces
+remain role-filtered and every direct endpoint still authorizes independently.
 
 ## Control-plane boundary
 
@@ -34,6 +38,9 @@ Follow `assets/browser-control-plane.mmd`:
   and writes allowlisted Run Events.
 - SSE is a cursor-addressable projection (`after=<sequence>`), supports replay after
   reconnect, and authorizes the subscription before reading any event.
+- A command ACK/HTTP202 only means accepted. Pause/stop confirmations come from
+  durable Runtime state/events. Reconnect restores snapshot/sequence first;
+  duplicate final or late cancelled events must not append another result.
 - The browser receives summaries, status, evidence, tool receipts, and approval facts.
   It never receives hidden reasoning, raw credentials, environment variables,
   unrestricted tool output, or absolute system paths.
@@ -108,5 +115,5 @@ At minimum test login/logout, CSRF, cross-tenant object guesses, idempotent comm
 creation, worker lease recovery, cancellation, SSE replay, approval reject/expire/
 parameter change, artifact traversal/type/size, Memory scope, redaction, responsive
 keyboard navigation, disconnect/reconnect, and verifier-owned completion. Offline
-core tests may leave dependency-backed browser tests `not_applicable`; a selected
+core tests may leave unselected dependency-backed browser tests `not_applicable`; a selected
 Browser profile cannot claim readiness until its backend, frontend, and E2E gates run.

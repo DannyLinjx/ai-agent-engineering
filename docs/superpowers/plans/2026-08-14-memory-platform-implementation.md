@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Modify only `/Users/danny/Documents/skills/ai-agent-engineering`.
+- Modify only the selected `<skill-root>`.
 - Follow strict TDD for every Python behavior.
 - SQLite is the local canonical source; Markdown is explicit import/export only.
 - Credentials and secret-like data are rejected before persistence.

@@ -10,7 +10,7 @@ AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范�
 
 - [它解决什么问题](#它解决什么问题)
 - [核心能力](#核心能力)
-- [浏览器交互与记忆平台 Profile](#浏览器交互与记忆平台-profile)
+- [客户端与记忆平台 Profile](#客户端与记忆平台-profile)
 - [设计理念](#设计理念)
 - [工作模式](#工作模式)
 - [阶段化构建 P0–P10](#阶段化构建-p0p10)
@@ -76,24 +76,33 @@ AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范�
 | 生产化 | 发布清单、金丝雀、事故、回滚 |
 | 安全模型 | 威胁模型、滥用用例、拒绝策略 |
 
-## 浏览器交互与记忆平台 Profile
+## 客户端与记忆平台 Profile
 
 Factory 现在通过三组独立 Profile 让“Agent 创造 Agent”既能快速形成雏形，也
-能保留企业升级路径：Experience 选择 `headless`、`browser_chat` 或
-`operations_console`；Memory 选择禁用、`local`、`hybrid` 或 `enterprise`；
+能保留企业升级路径：Experience 选择 `headless`、`browser_chat`、
+`operations_console` 或 `native_chat`；Memory 选择禁用、`local`、`hybrid` 或 `enterprise`；
 Delivery 选择 `plan_only`、`guided_install` 或 `end_to_end`。旧 Blueprint 不写
 这些字段仍然有效，并使用 headless、禁用本地 Memory、plan-only 安全默认值。
 
 浏览器首个参考栈为 React/Vite + FastAPI，提供对话、Run 时间线、审批、产物、
 Memory 和可选运维控制台。浏览器仅显示安全投影；Agent 执行、授权与凭据解析
-始终留在服务端边界。Memory 雏形使用 SQLite + FTS5，Markdown 只用于显式导入
-导出；企业方案以 PostgreSQL 为唯一权威存储，并按需挂接向量、图或 Mem0 等
-适配器。详见 `references/browser-experience.md` 与
-`references/memory-deployment.md`。
+始终留在受控 Runtime 边界。浏览器参考 Memory 雏形使用 SQLite + FTS5，企业参考使用 PostgreSQL；它们不强制迁移现有存储。每类记录保持唯一权威归属，可保留独立加密文件与有作用域的 Markdown；派生索引另管生命周期。详见 `references/client-experience.md`、`references/browser-experience.md` 与 `references/memory-deployment.md`。
 
 浏览器候选同时包含响应式前端、后端控制面合同、Vitest/TypeScript/Vite 门禁、
 Playwright 桌面/平板/移动端工作流，以及只同步已验证构建产物的打包脚本。依赖
 安装与服务启动仍由用户在后续交付任务中明确选择，Factory 不会自动执行。
+
+原生 `native_chat/native_cli` 支持 `stdio/local_ipc` 规划与清单，不要求 WebView、HTTP、React 或第二套 Runtime。当前 Factory 可生成核心候选，但原生 GUI、`encrypted_files/scoped_markdown` 记忆适配器仍标 `planned`，不能说已生成完整实现。Blueprint 的 `max_steps=0` 可表达无固定次数上限；旧可执行脚手架缺少完整保护，apply 会在写入前拒绝，需对接已有受控 Runtime。
+
+新增按需参考：
+
+- [客户端与富消息/IME](references/client-experience.md)、[原生 CLI 客户端与启动器](references/native-cli-client.md)。
+- [真实能力状态与退役](references/capability-readiness.md)、[来源/Reader/批处理](references/document-source-pipelines.md)。
+- [确定性 Prompt 与受控学习](references/prompt-policy-learning.md)、[运行资源迁移/清理](references/runtime-storage-operations.md)。
+
+经验更新只应沉淀通用工程方法和独立构造的合成示例。允许更新或发布 Skill，
+不代表允许公开经验来源项目的名称、源码、架构快照、专属配置、路径、截图或操作历史。
+这些内容需要针对具体内容和目的地另行明确授权；删除项目名称本身不等于完成匿名化。
 
 ## 设计理念
 
@@ -195,6 +204,8 @@ flowchart TD
 | DOCUMENT | 与当前代码一致的架构/运维文档 | 是 | 文档对照代码核验 |
 
 ## 阶段化构建 P0–P10
+
+先采用用户已给定的阶段、编号与验收入口；下表仅是没有既定计划时的参考依赖顺序，不替用户重新规划或一次实现全部模块。
 
 不要同时启动所有模块。先交付**最小的安全闭环**，通过该阶段门禁后再扩展：
 
@@ -486,7 +497,7 @@ python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --
 1. 填写 `templates/agent-charter.md`，明确目标、范围、自治级别、数据与租户、预算、完成与回滚、负责人；
 2. 用 `templates/capability-matrix.md` 建立 21 项能力矩阵（当前状态 / 目标 / 优先级 / 验证方法 / 证据位置）；
 3. 用 `templates/threat-model.md` 建立威胁模型；
-4. 按 P0 → P1 → … → P10 实施最小垂直切片：每个切片先加契约测试，再实现最小行为，再静态检查、diff 审查、更新矩阵、检查点，最后通过公共接口集成；
+4. 按用户已授权的阶段实施最小垂直切片；缺少计划时参考 P0–P10：每个切片先加契约测试，再实现最小行为，再静态检查、diff 审查、更新矩阵、检查点，最后通过公共接口集成；
 5. 每个阶段运行验收测试并保留证据。
 
 ### 配置可选集成
@@ -581,6 +592,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 | 示例 | 内容 |
 | --- | --- |
 | `enterprise-agent-blueprint.json` | 企业服务运营 Agent Blueprint：多租户、机密数据、可选集成、确定性验证与人工审批 |
+| `native-local-agent-blueprint.json` | 原生/stdio 核心候选；GUI与加密文件Memory标planned，不生成Web或迁库 |
 | `local-memory-agent-blueprint.json` | React/FastAPI 浏览器对话 + SQLite/FTS5 本地 Memory + guided install 方案 |
 | `browser-enterprise-agent-blueprint.json` | 企业 operations console + PostgreSQL/pgvector Memory + end-to-end 治理方案 |
 | `coding-agent.md` | 编码 Agent 完整垂直切片：检查项目 → 复现失败 → 诊断 → 最小补丁 → 验证 → diff 审查 |
@@ -642,7 +654,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 - 缺少权限或不可逆操作未获授权；
 - 策略解析为 DENY/ASK 且无法取得授权；
-- 回滚边界不清晰，或不可逆迁移缺少已验证备份；
+- 回滚边界不清晰，或不可逆操作缺少明确处置授权/合适恢复方案；对明确要求丢弃的数据如实记录损失，不偷偷另存巨量备份；
 - 租户隔离无法证明；
 - 评测/证据数据无效；
 - 需要密钥或生产凭据才能完成必需能力；
@@ -668,7 +680,7 @@ python3 scripts/validate_skill_structure.py --skill . --json
 
 记录命令、退出码、耗时、环境/配置/模型/工具/Skill 版本、用例 ID、指标、阈值与产物路径。生产声明还需要机器可读的就绪门禁与 `references/production-checklist.md` 中的运维证据。
 
-即使所有可选集成都禁用，也必须运行核心检查。只跳过适配器专属检查并说明原因；绝不把未配置的适配器报告为“已测试”。
+即使所有可选集成都禁用，也应完成受影响的核心检查。组件/独立工具/主 Runtime/自然语言 E2E/GUI/OS隔离分别报告；最后相关修改后核对真实交付入口和加载进程。必要门禁通过后停止重复扩测；未配置、blocked、未测不能写通过。
 
 ### 交付物契约
 

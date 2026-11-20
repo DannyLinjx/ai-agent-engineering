@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Modify only `/Users/danny/Documents/skills/ai-agent-engineering`.
+- Modify only the selected `<skill-root>`.
 - Version 1.0 Blueprints without the new sections remain valid and normalize to headless, disabled local Memory, and plan-only delivery.
 - Factory scripts never install dependencies, start services, open a browser, connect credentials, migrate live data, or deploy.
 - A generated artifact is never reported as verified or production ready without executable evidence.

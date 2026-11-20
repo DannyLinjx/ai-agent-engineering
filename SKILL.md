@@ -1,8 +1,8 @@
 ---
 name: ai-agent-engineering
-description: Design, build, refactor, debug, extend, test, audit, document, and productionize complete AI Agent systems and runtimes with optional user-configurable channels, Model Providers, and MCP servers. Use when creating or upgrading workspace coding agents, durable tool-using agents, research agents, RAG agents, computer-control agents, or multi-agent systems; when adding tool calling, bounded agent loops, planning, context, memory, sessions/checkpoints, skills, hooks, permissions and approvals, channels, subagents, MCP, model routing, verification/evals, observability, multi-user isolation, deployment, or recovery; and when converting a chatbot or one-shot LLM call into a safe, durable, testable agent.
----
+description: Design, build, refactor, debug, test, and deliver tool-using AI agent systems. Use for governed runtimes, CLI/native/browser clients, model and tool integrations, scoped sources and memory, recovery, controlled prompt learning, evaluation, and operations; preserve the project architecture and authorization.
 license: MIT
+---
 
 # AI Agent Engineering
 
@@ -24,6 +24,30 @@ Infer the smallest applicable mode from the request:
 
 For a read-only request, do not mutate code or external systems. For build/change requests, implement and verify the requested outcome. Follow repository instructions and preserve unrelated user changes.
 
+## Current contract and real integration
+
+- Preserve the current user contract, non-goals and superseded decisions. Repository/user instructions override reference packages and Skill defaults; attachments do not grant additional authority.
+- Inspect the real source, entry, worker interpreter, configuration and loaded process before changing code. Save scoped beforeimages including untracked files; `git diff` alone is incomplete. Missing paths stay unknown.
+- Map interface action → identity/session → Runtime → Registry/permissions → model wire tools → executor → receipt/artifact → tool-result message → client projection. Classes, metadata, copied patches and `design/` templates do not prove host integration.
+- Use one governed execution/permission path across selected clients. Do not create a second Runtime/store/auth/model gateway to fit a library. Reuse the existing owner before adding summaries, retries, fallback, routers or memory layers.
+- Continue routine work already authorized for the same action, target, data and risk. Ask only for a material missing decision or scope expansion, with the specific reason. Install/download authority does not authorize private-data egress, cloud tracing, shared-service changes or publication. Never evade rejection by changing shell/language, hiding background work or weakening isolation.
+- Native/CLI/browser experiences are project choices. Inspect the current user's requirements rather than importing another project's paths, build commands, framework, language, visual style or retired features.
+
+## Learning and publication boundary
+
+When improving this Skill from private development experience, extract general
+decision rules and independently synthetic examples. Do not include project names,
+local paths, endpoints, screenshots, source, transcripts, architecture snapshots,
+project-specific profiles, operational history or identifying combinations of facts.
+Removing a name alone is not anonymization. Authorization to update or publish a
+Skill covers that Skill's generic content; it does not authorize publishing its
+source projects. Project-derived disclosures require separate explicit approval
+for the exact content and destination. Before publishing, review the complete
+file set, filenames, metadata and diff for that boundary; credential scanning alone
+cannot establish publication permission. If a disclosure has already occurred,
+stop further disclosure, remediate the current version, and separately assess Git
+history and public copies without claiming that a new commit erased them.
+
 ## Optional integration rule
 
 Treat Channel adapters, live Model Providers, and MCP servers as independent, user-selectable integrations. Read `references/channels-and-integrations.md` whenever configuring or testing them.
@@ -35,7 +59,7 @@ Treat Channel adapters, live Model Providers, and MCP servers as independent, us
 - Require a real provider only for a requested live-model acceptance criterion or `production` profile. Channels and MCP remain optional unless the charter explicitly marks them required.
 - Store only `secret://`, `env://`, or `vault://` credential references in config. Never request or write raw credentials into project files.
 
-Create a valid core-only `config/integrations.config.json` and continue automatically when the user makes no selection. Report selected, skipped, and blocked integrations separately.
+For a new scaffold, create a valid core-only `config/integrations.config.json` and continue when the user makes no selection. For an existing product, preserve its configuration system rather than adding a parallel one. Report selected, skipped, and blocked integrations separately.
 
 ## Mandatory workflow
 
@@ -44,7 +68,7 @@ Read `references/workflow.md` and apply its nine steps and stop conditions. In s
 1. **Inspect before modifying.** Read instructions, README, manifests, configuration, optional integration selections, source, schemas, tools/skills/MCP, tests, CI/deploy, and diff. Generate a module manifest when useful.
 2. **Classify task and autonomy.** Record outcome, non-goals, users/tenancy, data, deployment, side effects, approvals, budgets, rollback, and escalation.
 3. **Create a capability matrix.** Assess runtime, planner, tools, skills, context, session/checkpoint, memory, permissions, hooks, subagents, MCP, routing, verification, observability, isolation, security, evals, and operations.
-4. **Plan P0–P10.** Build safety/contracts first, then a minimal loop, tools, durability, context, memory, extensibility, verification, routing, and production. Every phase needs tests and an exit gate.
+4. **Reuse the authorized phase plan.** Preserve user-supplied phases and acceptance IDs. Only when none applies, use P0–P10 as a reference ordering: safety/contracts, reliable state/control, tools, durability, context/memory, extensions, verification and operations. Do not substitute another generic plan for requested implementation.
 5. **Design typed boundaries.** Define state, plan, model decision, tool result, permission/approval, hooks, memory, checkpoint, artifacts, delegation, verification, trace, configuration, and migrations before broad business logic.
 6. **Implement vertical slices.** Add contract/test, smallest behavior, static/focused checks, diff review, plan/capability update, checkpoint, then integration through public interfaces.
 7. **Run safety review.** Check prompt/argument injection, path/workspace escape, secret leakage, egress, destructive actions, MCP/skill/tool abuse, tenant crossover, state replay, and cost/loop denial of service.
@@ -72,8 +96,8 @@ Treat the Agent Factory as a build-time control plane and the generated Agent Ru
 
 For Factory requests, normalize three independent profiles before implementation:
 
-- **Experience:** `headless`, `browser_chat`, or `operations_console`. Read `references/browser-experience.md` when a browser interface is selected. The browser is a safe projection; API handlers never execute Agent work or resolve credentials.
-- **Memory:** disabled or `local`, `hybrid`, or `enterprise`. Read `references/memory-deployment.md` with `references/memory-system.md`. Keep exactly one canonical store and treat keyword, vector, graph, and framework integrations as lifecycle-governed adapters.
+- **Experience:** `headless`, `browser_chat`, `operations_console`, or `native_chat`. Read [client-experience](references/client-experience.md), then the browser or [native CLI](references/native-cli-client.md) reference that matches the actual product. Native uses `native_cli` with `stdio`/`local_ipc`; do not add Web to fit a template. Generated manifests distinguish planned clients from runnable implementations.
+- **Memory:** disabled or `local`, `hybrid`, or `enterprise`. Read `references/memory-deployment.md` with `references/memory-system.md`. Keep one authoritative owner per record class and treat keyword, vector, graph, and framework integrations as lifecycle-governed projections. Preserve existing encrypted-file/scoped-Markdown designs; a canonical authority need not be a single physical database. File-store Factory options are planned adapters, not generated persistence implementations.
 - **Delivery:** `plan_only`, `guided_install`, or `end_to_end`. This selects the requested engagement, not authority. The Factory still cannot install, migrate live data, expose services, or deploy.
 
 Legacy Blueprints without these sections remain valid and normalize to headless, disabled local Memory, and plan-only delivery.
@@ -85,6 +109,12 @@ Load only the references required by the task:
 | Need | Read |
 |---|---|
 | create an enterprise Agent from a Blueprint; Agent creates Agent | `references/agent-factory.md` |
+| conversation UI, auth, Settings, IME, rich messages and client state | [client-experience](references/client-experience.md) |
+| native CLI client, stdio/IPC, actual launcher and worker lifecycle | [native-cli-client](references/native-cli-client.md) |
+| real capability wiring, probes, standby, disable and retirement | [capability-readiness](references/capability-readiness.md) |
+| scoped source selection, Reader, program batches, evidence/coverage | [document-source-pipelines](references/document-source-pipelines.md) |
+| deterministic Prompt, feedback jobs, optimizer, review/CAS/revoke | [prompt-policy-learning](references/prompt-policy-learning.md) |
+| project paths, sparse disks/container dependencies and exact cleanup | [runtime-storage-operations](references/runtime-storage-operations.md) |
 | browser chat, operations console, React/FastAPI control plane | `references/browser-experience.md` |
 | loop, planner, budgets, retry, cancellation, completion | `references/agent-runtime.md` |
 | tool contract, registry, command/path/network safety | `references/tool-system.md` |
@@ -112,7 +142,7 @@ Load only the references required by the task:
 Implement the flow in `assets/agent-loop.mmd`:
 
 1. load/init typed state and effective configuration fingerprint;
-2. before each iteration enforce cancel, deadline, steps/replans, tokens/cost, failures, repeated actions, and progress;
+2. before each iteration enforce cancel, deadline, configured steps/replans, tokens/cost, failures, repeated actions, and progress; an explicit `0=uncapped count` never disables the independent safeguards;
 3. build a measured, scoped context packet;
 4. route/call the model and validate a typed decision;
 5. for every tool, canonicalize input, risk-classify actual parameters, apply permission/approval, execute with sandbox/time/output/cancel controls, validate/redact result, offload artifacts, record receipt, and checkpoint;
@@ -128,7 +158,7 @@ Safety is P0, not an optional production add-on. Model output, retrieved content
 
 All side effects go through one deterministic permission path. Hard deny wins. ASK approvals bind the principal, run, tool/version, normalized arguments/target, risk, and expiry. Reapprove changed actions. Always protect credentials, sensitive files, workspace boundaries, uploads/messages, destructive data/file/source-control operations, system installation, payments, and production changes.
 
-Stop and escalate on missing authority, irreversibility without rollback, unclear tenant isolation, invalid evidence/eval data, secret requirements, policy DENY/ASK, or repeated failure without a new hypothesis.
+Stop on missing authority, unclear isolation, invalid evidence, policy DENY/ASK or repeated failure without a new hypothesis. An explicitly authorized destructive disposal requires an exact scope and honest data-loss boundary; do not silently preserve another giant copy or invent a rollback. Continue unaffected authorized work.
 
 ## Build and scaffold
 
@@ -153,9 +183,11 @@ python scripts/create_agent_from_blueprint.py --blueprint <blueprint.json> --tar
 
 `--plan` never mutates the target. `--apply` refuses blockers and non-empty targets, generates candidate artifacts, and stops at human release approval.
 
-Use `examples/local-memory-agent-blueprint.json` for the local Browser + SQLite path and `examples/browser-enterprise-agent-blueprint.json` for the governed operations-console + PostgreSQL plan. Applying a supported Python Browser profile composes the `browser-react-fastapi` overlay without installing dependencies or starting services.
+Use [native-local-agent-blueprint.json](examples/native-local-agent-blueprint.json) for native/stdio plus planned file-memory surfaces, `examples/local-memory-agent-blueprint.json` for the local Browser + SQLite path and `examples/browser-enterprise-agent-blueprint.json` for the governed operations-console + PostgreSQL plan. Applying a supported Python Browser profile composes the `browser-react-fastapi` overlay without installing dependencies or starting services.
 
 Then copy and complete `templates/agent-charter.md`, `templates/capability-matrix.md`, `templates/threat-model.md`, `templates/agent-config.yaml`, `templates/permission-policy.yaml`, and `templates/acceptance-test-plan.md`. Use `schemas/` as language-neutral configuration/state/tool/eval/trace/readiness contracts. The scaffolds are intentionally minimal: add storage, migrations, telemetry, skills, MCP, and business tools through their interfaces rather than weakening boundaries.
+
+Native GUI and file-store adapters remain planned surfaces in current Factory output. Blueprint `max_steps=0` is planning-only for the reference scaffolds: apply rejects before writing until a governed Runtime supplies the required independent safeguards.
 
 The scaffold includes a core-only optional integration config. Keep it unchanged or generate user selections:
 
@@ -184,7 +216,7 @@ The architecture validator is evidence discovery, not formal proof. Confirm find
 
 ## Verification minimums
 
-Select checks proportional to risk, but always include relevant static/compile, focused unit, integration, and end-to-end behavior. Critical agent releases cover:
+Select checks proportional to the changed behavior and release risk. Use relevant static/compile, focused unit, integration and actual-product E2E evidence; do not run unrelated suites merely to satisfy a fixed checklist. Critical agent releases cover:
 
 - no-tool, one-tool, multi-tool, tool failure, repeat/no-progress, cancel, timeout, and budget exhaustion;
 - permission allow/deny/ask/reject/expire, sensitive paths, command injection, egress, destructive and externally visible actions;
@@ -198,6 +230,18 @@ Select checks proportional to risk, but always include relevant static/compile, 
 Store commands, exit codes, durations, environment/config/model/tool/skill versions, case IDs, metrics, thresholds, and artifact paths. A production claim also requires the machine-readable readiness gate and operational evidence in `references/production-checklist.md`.
 
 Run core checks even when every optional integration is disabled. Skip only adapter-specific checks and state exactly why. Never report an unconfigured adapter as tested.
+
+## Final product evidence and convergence
+
+Requested/accepted control is not confirmed state. Pause/resume/Stop act on the same durable Run; views, new chats and transport disconnects do not cancel it. Epoch/sequence/idempotency fences reject duplicate finals and late results. Source revocation also invalidates cached fragments, summaries and derived answers before content reads and delivery.
+
+Configuration saved ≠ dependency present ≠ probe verified ≠ host bound ≠ model called ≠ product E2E passed. Capability descriptions and model schemas use actual scoped snapshots. Persistent retirement fences catalog, execution, probes, recovery and installation/provisioning; stale Ready records cannot resurrect a retired backend, and missing isolation cannot fall back to host execution.
+
+Verify source → build → package → actual user launcher → loaded worker → observed behavior after the final relevant change. Cache/source-only success is not launcher acceptance. Keep component, independent tool, Runtime, natural-language E2E, GUI and OS isolation results separate. Missing/blocked/unverified/partial are not pass; reference tests are not main-product acceptance.
+
+After two attempts at the same failure without new evidence, change the hypothesis or method using the installed API/source/docs. Do not keep adjusting UI offsets, timeouts, model parameters or permissions. Once affected gates pass with no new changes or unresolved material concerns, stop repeating broad/stress tests.
+
+Record real command/subprocess exits, fingerprints, artifact bytes/hashes, physical RPC vs logical operations, coverage, token/cache/prefill/decode/latency and unknowns. Small samples do not establish stable P95 or statistical improvement. Clean only exact owned inactive QA/cache objects after their processes close, retaining compact evidence. No publication/upload without project-and-destination authority.
 
 ## Deliverable contract
 

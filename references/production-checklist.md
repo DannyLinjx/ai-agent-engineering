@@ -11,7 +11,8 @@ Do not call an agent production-ready until each applicable item has evidence an
 
 ## Runtime and reliability
 
-- bounded loop, budgets, deadlines, cancellation, no-progress detection;
+- loop governed by the project's declared budgets, deadlines, cancellation and
+  no-progress detection; a configured unlimited count never removes other guards;
 - idempotency, retries, checkpoints, recovery, reconciliation, and migrations tested;
 - dependency timeouts, circuit breakers, degraded modes, and capacity limits defined;
 - safe shutdown and backpressure verified.
@@ -52,13 +53,46 @@ Do not call an agent production-ready until each applicable item has evidence an
   recovery, approval replay protection, artifact authorization, accessibility, and
   dependency-backed frontend/backend/E2E gates have evidence;
 - API handlers persist commands and never execute Agent tools or resolve credentials;
-- exactly one Memory canonical store is declared; consent, retention, correction,
+- one authoritative owner per Memory record family is declared (metadata/payload
+  may use separate physical stores); consent, retention, correction,
   deletion, index propagation, export, and authorization-before-ranking are verified;
 - selected enterprise Memory adapters have SecretRefs, health/SLO ownership, backup
   restore, rebuild, shadow migration comparison, approved cutover, and tested rollback;
 - profile manifests and deployment plan match the released configuration; generated
   or planned status alone is not production evidence.
 
+For native or other non-browser clients, apply
+[client-experience.md](client-experience.md) and the selected adapter's checks;
+browser cookies/CSRF/SSE are not reasons to add an HTTP product to a native client.
+Native launch/package/stdio and loaded-worker evidence are described in
+[native-cli-client.md](native-cli-client.md).
+
+## Capability lifecycle and delivered product
+
+- actual Registry → permission/selection → model wire → execution → receipt →
+  model result → client paths are verified, not only standalone tools or templates;
+- installed/configured/probed/authorized/runtime-bound/verified states and capability
+  self-description match the current version; config or permission changes invalidate
+  stale probes;
+- disabled/retired dependencies cannot be resurrected by snapshots, execution,
+  probes, recovery, installers or scheduled repair; no unapproved host/provider
+  fallback; see [capability-readiness.md](capability-readiness.md);
+- final source/prompt/config maps to the built package, actual user entry, loaded
+  executable/worker and observed behavior; cached binaries/source screenshots do
+  not establish the real launcher's version;
+- UI/parser/independent tool/primary Runtime/model natural-language/GUI evidence
+  are separated; blocked, skipped and unverified remain explicit;
+- update failure preserves a complete previous artifact and private user state;
+  rollback distinguishes code/config recovery from irreversible deleted data;
+- owned test processes have closed before exact synthetic/cache cleanup; unrelated
+  accounts, profiles and formal resources remain intact. See
+  [runtime-storage-operations.md](runtime-storage-operations.md).
+
 ## Release evidence
 
 Record code revision, artifact digest, configuration/schema versions, model profiles, tool/skill/MCP catalog versions, test/eval reports, migration plan, security approval, known limitations, owners, rollout steps, and rollback trigger. Use `schemas/production-readiness.schema.json` for a machine-readable gate.
+
+Local build/package verification is not permission to upload or publish. Honor the
+user's project-and-destination publication scope independently of repository access
+or existing credentials. Do not prolong release verification after the applicable
+gates pass unless a new change, failure or unresolved risk warrants another check.

@@ -1,7 +1,7 @@
 interface:
   display_name: "AI Agent Engineering"
-  short_description: "Build governed enterprise agents from blueprints"
+  short_description: "Build, debug and deliver governed agent systems"
   brand_color: "#0F766E"
-  default_prompt: "Use $ai-agent-engineering to turn enterprise requirements into a governed Agent Blueprint, candidate implementation, and verification evidence."
+  default_prompt: "Use $ai-agent-engineering to improve this agent system through its existing Runtime, implement the requested behavior, and verify the final product with scoped evidence."
 policy:
   allow_implicit_invocation: true

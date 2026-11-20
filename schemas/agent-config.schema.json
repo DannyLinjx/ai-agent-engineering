@@ -4,80 +4,388 @@
   "title": "AgentConfig",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "agent", "runtime", "context", "permissions", "integrations", "storage", "telemetry"],
+  "required": [
+    "version",
+    "agent",
+    "runtime",
+    "context",
+    "permissions",
+    "integrations",
+    "storage",
+    "telemetry"
+  ],
   "properties": {
-    "version": {"type": "string", "minLength": 1},
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
     "agent": {
-      "type": "object", "additionalProperties": false, "required": ["id", "name", "mode"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "mode"
+      ],
       "properties": {
-        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"},
-        "name": {"type": "string", "minLength": 1},
-        "mode": {"enum": ["assistant", "tool-agent", "durable-agent", "extensible-agent", "production-platform"]},
-        "instructions_file": {"type": "string"}
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "enum": [
+            "assistant",
+            "tool-agent",
+            "durable-agent",
+            "extensible-agent",
+            "production-platform"
+          ]
+        },
+        "instructions_file": {
+          "type": "string"
+        }
       }
     },
     "runtime": {
-      "type": "object", "additionalProperties": false,
-      "required": ["max_steps", "max_replans", "task_timeout_seconds", "tool_timeout_seconds", "max_consecutive_failures", "max_repeated_actions", "token_budget", "cost_budget_usd"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_steps",
+        "max_replans",
+        "task_timeout_seconds",
+        "tool_timeout_seconds",
+        "max_consecutive_failures",
+        "max_repeated_actions",
+        "token_budget",
+        "cost_budget_usd"
+      ],
       "properties": {
-        "max_steps": {"type": "integer", "minimum": 1},
-        "max_replans": {"type": "integer", "minimum": 0},
-        "task_timeout_seconds": {"type": "integer", "minimum": 1},
-        "tool_timeout_seconds": {"type": "integer", "minimum": 1},
-        "max_consecutive_failures": {"type": "integer", "minimum": 1},
-        "max_repeated_actions": {"type": "integer", "minimum": 1},
-        "token_budget": {"type": "integer", "minimum": 1},
-        "cost_budget_usd": {"type": "number", "minimum": 0},
-        "checkpoint_after_tool": {"type": "boolean"}
+        "max_steps": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Executable reference-template limit: positive only. Zero is supported solely by Blueprint planning for an existing governed runtime, not by these minimal runtime templates."
+        },
+        "max_replans": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "task_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tool_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_consecutive_failures": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_repeated_actions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "token_budget": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cost_budget_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "checkpoint_after_tool": {
+          "type": "boolean"
+        }
       }
     },
     "context": {
-      "type": "object", "additionalProperties": false, "required": ["max_input_tokens", "reserved_output_tokens", "tool_output_artifact_bytes"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_input_tokens",
+        "reserved_output_tokens",
+        "tool_output_artifact_bytes"
+      ],
       "properties": {
-        "max_input_tokens": {"type": "integer", "minimum": 1},
-        "reserved_output_tokens": {"type": "integer", "minimum": 1},
-        "tool_output_artifact_bytes": {"type": "integer", "minimum": 1},
-        "compaction_trigger_ratio": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reserved_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tool_output_artifact_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "compaction_trigger_ratio": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
       }
     },
     "permissions": {
-      "type": "object", "additionalProperties": false, "required": ["default", "policy_file", "approval_timeout_seconds"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default",
+        "policy_file",
+        "approval_timeout_seconds"
+      ],
       "properties": {
-        "default": {"enum": ["deny", "ask"]},
-        "policy_file": {"type": "string"},
-        "approval_timeout_seconds": {"type": "integer", "minimum": 1}
+        "default": {
+          "enum": [
+            "deny",
+            "ask"
+          ]
+        },
+        "policy_file": {
+          "type": "string"
+        },
+        "approval_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "integrations": {
-      "type": "object", "additionalProperties": false, "required": ["config_file", "allow_unconfigured_optional"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config_file",
+        "allow_unconfigured_optional"
+      ],
       "properties": {
-        "config_file": {"type": "string", "minLength": 1},
-        "allow_unconfigured_optional": {"const": true}
+        "config_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allow_unconfigured_optional": {
+          "const": true
+        }
       }
     },
-    "tools": {"type": "object", "properties": {"manifest": {"type": "string"}, "allow": {"type": "array", "items": {"type": "string"}}}},
-    "skills": {"type": "object", "properties": {"roots": {"type": "array", "items": {"type": "string"}}, "lazy": {"type": "boolean"}}},
+    "tools": {
+      "type": "object",
+      "properties": {
+        "manifest": {
+          "type": "string"
+        },
+        "allow": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "object",
+      "properties": {
+        "roots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lazy": {
+          "type": "boolean"
+        }
+      }
+    },
     "memory": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["enabled", "profile", "canonical_store", "keyword_index", "vector_index", "graph_store", "framework", "database_url", "credential_ref", "markdown_mode", "require_consent", "retention_days", "authorization_before_ranking"],
+      "required": [
+        "enabled",
+        "profile",
+        "canonical_store",
+        "keyword_index",
+        "vector_index",
+        "graph_store",
+        "framework",
+        "database_url",
+        "credential_ref",
+        "markdown_mode",
+        "require_consent",
+        "retention_days",
+        "authorization_before_ranking"
+      ],
       "properties": {
-        "enabled": {"type": "boolean"},
-        "profile": {"enum": ["local", "hybrid", "enterprise"]},
-        "canonical_store": {"enum": ["sqlite", "postgresql"]},
-        "keyword_index": {"enum": ["none", "sqlite_fts5", "postgres_fts"]},
-        "vector_index": {"enum": ["none", "pgvector", "redis", "qdrant", "milvus", "weaviate", "mem0"]},
-        "graph_store": {"enum": ["none", "neo4j"]},
-        "framework": {"enum": ["native", "mem0"]},
-        "database_url": {"type": "string", "pattern": "^(?:sqlite:///[^\\s]+|postgresql://[^@\\s/]+(?:/[^\\s]*)?)$"},
-        "credential_ref": {"type": ["string", "null"], "pattern": "^(?:secret|env|vault)://[A-Za-z0-9._/-]+$"},
-        "markdown_mode": {"enum": ["disabled", "export_only", "export_import_proposals"]},
-        "require_consent": {"type": "boolean"},
-        "retention_days": {"type": "integer", "minimum": 0},
-        "authorization_before_ranking": {"const": true}
+        "enabled": {
+          "type": "boolean"
+        },
+        "profile": {
+          "enum": [
+            "local",
+            "hybrid",
+            "enterprise"
+          ]
+        },
+        "canonical_store": {
+          "enum": [
+            "sqlite",
+            "postgresql",
+            "encrypted_files",
+            "scoped_markdown"
+          ]
+        },
+        "keyword_index": {
+          "enum": [
+            "none",
+            "sqlite_fts5",
+            "postgres_fts"
+          ]
+        },
+        "vector_index": {
+          "enum": [
+            "none",
+            "pgvector",
+            "redis",
+            "qdrant",
+            "milvus",
+            "weaviate",
+            "mem0"
+          ]
+        },
+        "graph_store": {
+          "enum": [
+            "none",
+            "neo4j"
+          ]
+        },
+        "framework": {
+          "enum": [
+            "native",
+            "mem0"
+          ]
+        },
+        "database_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:sqlite:///[^\\s]+|postgresql://[^@\\s/]+(?:/[^\\s]*)?)$"
+        },
+        "credential_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:secret|env|vault)://[A-Za-z0-9._/-]+$"
+        },
+        "markdown_mode": {
+          "enum": [
+            "disabled",
+            "export_only",
+            "export_import_proposals",
+            "scoped_canonical"
+          ]
+        },
+        "require_consent": {
+          "type": "boolean"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "authorization_before_ranking": {
+          "const": true
+        },
+        "record_root": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Configured owner-scoped store root. Runtime must enforce path, identity, encryption/consent and lifecycle policies."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "canonical_store": {
+                "enum": [
+                  "encrypted_files",
+                  "scoped_markdown"
+                ]
+              }
+            },
+            "required": [
+              "canonical_store"
+            ]
+          },
+          "then": {
+            "required": [
+              "record_root"
+            ],
+            "properties": {
+              "database_url": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "canonical_store": {
+                "enum": [
+                  "sqlite",
+                  "postgresql"
+                ]
+              }
+            },
+            "required": [
+              "canonical_store"
+            ]
+          },
+          "then": {
+            "properties": {
+              "database_url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "storage": {
+      "type": "object",
+      "required": [
+        "url",
+        "artifact_root"
+      ],
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "artifact_root": {
+          "type": "string"
+        }
       }
     },
-    "storage": {"type": "object", "required": ["url", "artifact_root"], "properties": {"url": {"type": "string"}, "artifact_root": {"type": "string"}}},
-    "telemetry": {"type": "object", "required": ["redact_secrets", "audit_enabled"], "properties": {"redact_secrets": {"const": true}, "audit_enabled": {"type": "boolean"}, "service_name": {"type": "string"}}}
+    "telemetry": {
+      "type": "object",
+      "required": [
+        "redact_secrets",
+        "audit_enabled"
+      ],
+      "properties": {
+        "redact_secrets": {
+          "const": true
+        },
+        "audit_enabled": {
+          "type": "boolean"
+        },
+        "service_name": {
+          "type": "string"
+        }
+      }
+    }
   }
 }

@@ -27,6 +27,8 @@ REQUIRED = {
     "data_class",
     "engagement",
 }
+EXISTING_STORES = {"sqlite", "postgresql", "encrypted_files", "scoped_markdown"}
+OPTIONAL = {"existing_canonical_store"}
 
 
 def _hash(value: dict[str, Any]) -> str:
@@ -35,8 +37,10 @@ def _hash(value: dict[str, Any]) -> str:
 
 
 def _validate(request: dict[str, Any]) -> None:
-    if set(request) != REQUIRED:
-        raise ValueError(f"request must contain exactly {sorted(REQUIRED)}")
+    if not REQUIRED <= set(request) or set(request) - REQUIRED - OPTIONAL:
+        raise ValueError(f"request needs {sorted(REQUIRED)}; optional: {sorted(OPTIONAL)}")
+    if "existing_canonical_store" in request and request["existing_canonical_store"] not in EXISTING_STORES:
+        raise ValueError("existing_canonical_store is not a supported topology")
     enums = {
         "profile": {"local", "hybrid", "enterprise"},
         "managed_preference": {"managed", "self_hosted", "either"},
@@ -65,13 +69,15 @@ def build_deployment_plan(request: dict[str, Any]) -> dict[str, Any]:
     _validate(request)
     profile = request["profile"]
     local = profile == "local"
-    canonical = "sqlite" if local else "postgresql"
-    keyword = "sqlite_fts5" if local else "postgres_fts"
-    vector = "pgvector" if not local and request["semantic_retrieval_required"] else "none"
+    canonical = request.get("existing_canonical_store", "sqlite" if local else "postgresql")
+    preserving = "existing_canonical_store" in request
+    files = canonical in {"encrypted_files", "scoped_markdown"}
+    keyword = "none" if files else "sqlite_fts5" if canonical == "sqlite" else "postgres_fts"
+    vector = "pgvector" if canonical == "postgresql" and request["semantic_retrieval_required"] else "none"
     graph = "neo4j" if request["graph_queries"] else "none"
-    cache = "redis" if not local and (request["concurrent_writers"] >= 50 or request["latency_target_ms"] <= 100) else "none"
+    cache = "redis" if not local and not files and (request["concurrent_writers"] >= 50 or request["latency_target_ms"] <= 100) else "none"
     services: list[dict[str, Any]] = []
-    if not local:
+    if canonical == "postgresql":
         services.append({"name": "postgresql", "ports": [5432], "volume": "memory-postgresql-data", "credential_ref": "secret://memory/postgresql"})
     if cache == "redis":
         services.append({"name": "redis", "ports": [6379], "volume": "memory-redis-data", "credential_ref": "secret://memory/redis"})
@@ -82,11 +88,11 @@ def build_deployment_plan(request: dict[str, Any]) -> dict[str, Any]:
     approvals: list[str] = []
     if request["engagement"] in {"guided_install", "end_to_end"}:
         approvals.extend(["system_dependency_install", "secret_configuration", "network_exposure"])
-        if not local:
+        if not local and not preserving:
             approvals.extend(["data_backup", "data_migration", "production_cutover"])
     migration = {
-        "required": not local,
-        "steps": [] if local else [
+        "required": not local and not preserving,
+        "steps": [] if local or preserving else [
             "verify source backup and restore",
             "validate sample export and import",
             "bulk backfill canonical records",
@@ -107,7 +113,7 @@ def build_deployment_plan(request: dict[str, Any]) -> dict[str, Any]:
         "installation_allowed": False,
         "deployment_allowed": False,
         "selection_reasons": [
-            "SQLite/FTS5 is the smallest local canonical topology" if local else "PostgreSQL is the shared canonical store for hybrid and enterprise profiles",
+            "Preserve the explicitly selected existing canonical authority; validate its operational adequacy before production" if preserving else "SQLite/FTS5 is the local reference topology" if local else "PostgreSQL is the shared reference topology",
             "semantic retrieval was explicitly required" if vector != "none" else "no measured vector requirement was declared",
             "graph queries have acceptance coverage" if graph != "none" else "no graph query acceptance requirement was declared",
             "Redis is selected only for declared concurrency or latency pressure" if cache != "none" else "no independent cache service is required",
@@ -128,7 +134,7 @@ def build_deployment_plan(request: dict[str, Any]) -> dict[str, Any]:
         "backup": {
             "required": True,
             "restore_test_required": True,
-            "strategy": "SQLite snapshot and integrity check" if local else "PostgreSQL base backup plus point-in-time recovery",
+            "strategy": "Owner-scoped payload/metadata snapshot with decrypt/read/restore verification" if files else "SQLite snapshot and integrity check" if canonical == "sqlite" else "PostgreSQL base backup plus point-in-time recovery",
         },
         "migration": migration,
         "validation": [

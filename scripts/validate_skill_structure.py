@@ -11,6 +11,9 @@ from _common import emit, issue, iter_files, relative, result
 
 REQUIRED = [
     "SKILL.md", "references/workflow.md", "references/architecture.md",
+    "references/client-experience.md", "references/native-cli-client.md",
+    "references/capability-readiness.md", "references/runtime-storage-operations.md",
+    "references/prompt-policy-learning.md", "references/document-source-pipelines.md",
     "references/agent-factory.md", "references/browser-experience.md", "references/memory-deployment.md",
     "references/agent-runtime.md", "references/tool-system.md", "references/skill-system.md",
     "references/context-management.md", "references/memory-system.md", "references/permission-system.md",

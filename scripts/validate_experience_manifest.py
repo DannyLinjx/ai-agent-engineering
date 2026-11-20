@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a generated Browser Experience Manifest without starting the application."""
+"""Validate a client Experience Manifest without starting the application."""
 from __future__ import annotations
 
 import argparse
@@ -8,10 +8,10 @@ from typing import Any
 
 from _common import emit, issue, read_json, result
 
-PROFILES = {"headless", "browser_chat", "operations_console"}
-STACKS = {"none", "react_fastapi"}
+PROFILES = {"headless", "browser_chat", "operations_console", "native_chat"}
+STACKS = {"none", "react_fastapi", "native_cli"}
 AUTH = {"none", "local_account", "server_session", "oidc"}
-REALTIME = {"none", "sse", "websocket"}
+REALTIME = {"none", "sse", "websocket", "stdio", "local_ipc"}
 STATUSES = {"not_applicable", "planned", "generated"}
 SAFE_EVENTS = {
     "approval.required", "approval.resolved", "artifact.created", "evidence.added",
@@ -64,8 +64,13 @@ def validate_manifest(value: Any) -> list[dict[str, Any]]:
         if value.get("reference_stack") != "none" or value.get("auth") != "none" or value.get("realtime") != "none":
             findings.append(issue("headless-profile-conflict", "Headless manifest cannot enable browser components", path="profile"))
     elif profile in {"browser_chat", "operations_console"}:
-        if value.get("reference_stack") == "none" or value.get("auth") == "none" or value.get("realtime") == "none":
+        if value.get("reference_stack") != "react_fastapi" or value.get("auth") == "none" or value.get("realtime") not in {"sse", "websocket"}:
             findings.append(issue("incomplete-browser-profile", "Browser manifest requires stack, auth, and realtime transport", path="profile"))
+    elif profile == "native_chat":
+        if value.get("reference_stack") != "native_cli" or value.get("auth") == "none" or value.get("realtime") not in {"stdio", "local_ipc"}:
+            findings.append(issue("incomplete-native-profile", "Native manifest requires native_cli, authenticated identity and private stdio/local IPC", path="profile"))
+        if value.get("status") != "planned" or value.get("generated_surfaces"):
+            findings.append(issue("native-generator-unavailable", "Native surfaces are planned; this Factory does not generate a native GUI", path="status"))
     return findings
 
 

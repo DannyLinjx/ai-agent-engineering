@@ -137,20 +137,20 @@ class MemoryRetrievalTests(RecordFactory, unittest.TestCase):
             store.put(
                 self.record(
                     id="strong-old",
-                    summary="Project Phoenix launch schedule migration details",
-                    content={"project": "Phoenix", "detail": "launch schedule migration"},
+                    summary="Project Example launch schedule migration details",
+                    content={"project": "Example", "detail": "launch schedule migration"},
                     created_at=old,
                     updated_at=old,
                 )
             )
-            store.put(self.record(id="weak-new", summary="Project Phoenix", updated_at=as_of, created_at=as_of))
+            store.put(self.record(id="weak-new", summary="Project Example", updated_at=as_of, created_at=as_of))
             store.put(self.record(id="unrelated", summary="Unrelated current note", updated_at=as_of, created_at=as_of))
-            store.put(self.record(id="expired", summary="Project Phoenix launch schedule", expires_at=as_of - timedelta(seconds=1)))
+            store.put(self.record(id="expired", summary="Project Example launch schedule", expires_at=as_of - timedelta(seconds=1)))
             store.put(
                 self.record(
                     id="bob-private",
                     user_id="bob",
-                    summary="Project Phoenix launch schedule",
+                    summary="Project Example launch schedule",
                 )
             )
             retriever = MemoryRetriever(store)
@@ -158,7 +158,7 @@ class MemoryRetrievalTests(RecordFactory, unittest.TestCase):
             results = retriever.search(
                 MemoryQuery(
                     MemoryScope("tenant-a", "alice"),
-                    "project phoenix launch schedule",
+                    "project example launch schedule",
                     limit=2,
                     as_of=as_of,
                 )

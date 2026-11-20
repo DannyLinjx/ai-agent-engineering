@@ -20,7 +20,12 @@ The reference catalog supports `cli`, `web`, `api`, `webhook`, `telegram`, `feis
 
 Every channel adapter declares stable ID, type, enabled/required flags, credential references, and provider-specific settings. Implement a common contract for inbound normalization, outbound send, health, and shutdown. Normalize tenant/user/channel/conversation/message IDs, locale, attachments, idempotency key, reply target, and cancellation.
 
-No channel is a valid selection. A runtime may be exercised through direct API calls, a CLI harness, or test fixtures without registering a messaging channel.
+No channel is a valid selection. A runtime may be exercised through direct API
+calls, a CLI harness or test fixtures without registering a messaging channel.
+A native graphical client can project that same CLI Harness over private stdio/IPC;
+it is an experience/transport choice, not a requirement to register a remote
+messaging channel, introduce HTTP/WebView or build another runtime. See
+`client-experience.md` and `native-cli-client.md` when selected.
 
 ## Model provider selection
 
@@ -29,7 +34,7 @@ Supported provider types include `mock`, `openai`, `azure_openai`, `anthropic`, 
 - `mock`: deterministic development/test provider; never claim live-model or production readiness from it.
 - `none`: provider adapter work is intentionally deferred; model-dependent live tests are skipped.
 - `auto`: choose among configured compatible providers by capabilities, privacy, availability, budget, and latency.
-- `configured`: use the declared default provider and fallback order.
+- `configured`: use the declared default provider and only its explicitly authorized fallback policy, if any.
 
 Core runtime tests use a scripted/mock gateway and must not depend on an API key. A live provider is required only when the requested acceptance criterion requires live inference or the profile is `production`. If the user has not selected one, complete all independent work and report the live-provider gate as `skipped` for development/test or `blocked` for production—not as a generic project test failure.
 
@@ -56,6 +61,13 @@ Partition acceptance evidence:
 | MCP adapter | `not_applicable`/`skipped` | run for enabled servers |
 
 Never turn an unselected optional adapter into a required failure. Never turn a skipped live integration into evidence that it works. Production readiness requires a real model provider; channels and MCP remain optional unless the product charter marks them required.
+
+Retired is different from unconfigured or temporarily down. When the user removes
+an integration/backend, invalidate old readiness probes and model schemas and
+block automatic reprovision/recovery; do not "fix" it by reinstalling. Preserve
+independent local files/model/HTTP/API paths. Dependency installation, public
+downloads, private-data egress, cloud tracing, account creation and shared-service
+changes require their own actual authority; selecting a profile grants none.
 
 ## Examples
 

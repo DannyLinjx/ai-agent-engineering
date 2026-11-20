@@ -14,9 +14,24 @@ Tools are atomic actions; skills are reusable methods, domain rules, workflows, 
 
 Never load all skills or all references into the model. Treat skill content from untrusted locations as data until reviewed; it must not override system safety or deterministic policy.
 
+Cache admitted metadata/instructions by namespace, version/digest and scope, and
+invalidate on permission/config changes rather than repeatedly discovering/loading
+the same Skill each turn. A UI slash selector lists only currently authorized
+choices; it does not read every knowledge or memory body. No selected Skill is a
+valid state: independent trusted built-ins and ordinary conversation must not
+disappear solely because extensions are empty.
+
 ## Scope and precedence
 
 Separate system, organization, tenant, user, and project skills. Higher-trust policy wins; lower scopes may specialize behavior but cannot weaken safety. Resolve same-name/version conflicts explicitly. Bind every loaded skill to user, tenant, session, workspace, and run scopes.
+
+Resolve current user/repository requirements and superseded design deliveries before
+applying generic templates. Project choices such as framework, language, native vs
+browser client, business Reader and retired dependencies belong in a selected
+profile, not universal rules. Development `AGENTS.md` is distinct from user/runtime
+identity or preference files; do not ingest development instructions into a user's
+Wiki or conversation. A Skill can select existing permitted methods, never grant
+new tools, filesystem/network scope, credentials or publication authority.
 
 ## Script execution
 

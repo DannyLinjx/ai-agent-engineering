@@ -38,10 +38,12 @@ ENUMS = {
 }
 PERCEPTION_MODALITIES = {"text", "file", "image", "ocr", "history", "external_event"}
 DATA_CLASSES = {"public", "internal", "confidential", "restricted"}
-EXPERIENCE_PROFILES = {"headless", "browser_chat", "operations_console"}
-REFERENCE_STACKS = {"none", "react_fastapi"}
+EXPERIENCE_PROFILES = {"headless", "browser_chat", "operations_console", "native_chat"}
+REFERENCE_STACKS = {"none", "react_fastapi", "native_cli"}
 AUTH_PROFILES = {"none", "local_account", "server_session", "oidc"}
-REALTIME_PROFILES = {"none", "sse", "websocket"}
+REALTIME_PROFILES = {"none", "sse", "websocket", "stdio", "local_ipc"}
+FILE_MEMORY_STORES = {"encrypted_files", "scoped_markdown"}
+CANONICAL_STORES = {"sqlite", "postgresql"} | FILE_MEMORY_STORES
 MEMORY_PROFILES = {"local", "hybrid", "enterprise"}
 DELIVERY_ENGAGEMENTS = {"plan_only", "guided_install", "end_to_end"}
 PROFILE_SECTION_KEYS = {
@@ -126,6 +128,8 @@ def normalize_profiles(value: dict[str, Any]) -> dict[str, Any]:
         "framework": "native",
         **memory,
     }
+    if memory.get("canonical_store") in FILE_MEMORY_STORES and "keyword_index" not in memory:
+        normalized["memory"]["keyword_index"] = "none"
     normalized["delivery"] = {"engagement": "plan_only", **delivery}
     return normalized
 
@@ -139,6 +143,8 @@ def derive_profile_capabilities(value: dict[str, Any]) -> set[str]:
         derived.update(BROWSER_CHAT_CAPABILITIES)
     elif experience_profile == "operations_console":
         derived.update(OPERATIONS_CONSOLE_CAPABILITIES)
+    elif experience_profile == "native_chat":
+        derived.update({"session", "checkpoint", "security", "permissions", "verification", "realtime-events"})
     if memory.get("enabled"):
         if memory.get("profile") == "enterprise":
             derived.update(ENTERPRISE_MEMORY_CAPABILITIES)
@@ -206,7 +212,7 @@ def _validate_profile_sections(value: dict[str, Any]) -> list[dict[str, Any]]:
         ("experience.auth", experience.get("auth"), AUTH_PROFILES),
         ("experience.realtime", experience.get("realtime"), REALTIME_PROFILES),
         ("memory.profile", memory.get("profile"), MEMORY_PROFILES),
-        ("memory.canonical_store", memory.get("canonical_store"), {"sqlite", "postgresql"}),
+        ("memory.canonical_store", memory.get("canonical_store"), CANONICAL_STORES),
         ("memory.keyword_index", memory.get("keyword_index"), {"none", "sqlite_fts5", "postgres_fts"}),
         ("memory.vector_index", memory.get("vector_index"), {"none", "pgvector", "redis", "qdrant", "milvus", "weaviate", "mem0"}),
         ("memory.graph_store", memory.get("graph_store"), {"none", "neo4j", "mem0"}),
@@ -227,12 +233,19 @@ def _validate_profile_sections(value: dict[str, Any]) -> list[dict[str, Any]]:
 
     experience_profile = experience.get("profile")
     if experience_profile in {"browser_chat", "operations_console"}:
-        if experience.get("reference_stack") == "none":
-            findings.append(issue("experience-stack-required", "Browser profiles require a reference stack", path="experience.reference_stack"))
+        if experience.get("reference_stack") != "react_fastapi":
+            findings.append(issue("experience-stack-required", "Browser reference profiles require react_fastapi", path="experience.reference_stack"))
         if experience.get("auth") == "none":
             findings.append(issue("experience-auth-required", "Browser profiles require authenticated identity", path="experience.auth"))
-        if experience.get("realtime") == "none":
-            findings.append(issue("experience-realtime-required", "Browser profiles require a realtime observation transport", path="experience.realtime"))
+        if experience.get("realtime") not in {"sse", "websocket"}:
+            findings.append(issue("experience-realtime-required", "Browser profiles require SSE or WebSocket", path="experience.realtime"))
+    elif experience_profile == "native_chat":
+        if experience.get("reference_stack") != "native_cli":
+            findings.append(issue("native-stack-required", "Native clients use the existing CLI runtime integration, not a Web overlay", path="experience.reference_stack"))
+        if experience.get("auth") == "none":
+            findings.append(issue("native-auth-required", "Native clients require authenticated scoped identity", path="experience.auth"))
+        if experience.get("realtime") not in {"stdio", "local_ipc"}:
+            findings.append(issue("native-transport-required", "Native clients require private stdio or local IPC", path="experience.realtime"))
     elif experience_profile == "headless":
         if experience.get("reference_stack") != "none" or experience.get("auth") != "none" or experience.get("realtime") != "none" or surfaces:
             findings.append(issue("headless-profile-conflict", "Headless profile cannot declare browser components", path="experience"))
@@ -240,10 +253,10 @@ def _validate_profile_sections(value: dict[str, Any]) -> list[dict[str, Any]]:
     if memory.get("enabled"):
         memory_profile = memory.get("profile")
         canonical_store = memory.get("canonical_store")
-        if memory_profile in {"hybrid", "enterprise"} and canonical_store != "postgresql":
-            findings.append(issue("enterprise-canonical-store", "Hybrid and enterprise Memory require PostgreSQL as canonical store", path="memory.canonical_store"))
-        if memory_profile == "local" and canonical_store != "sqlite":
-            findings.append(issue("local-canonical-store", "Local Memory requires SQLite as canonical store", path="memory.canonical_store"))
+        if memory_profile in {"hybrid", "enterprise"} and canonical_store not in {"postgresql", *FILE_MEMORY_STORES}:
+            findings.append(issue("enterprise-canonical-store", "Use the PostgreSQL reference or explicitly preserve an existing governed file store", path="memory.canonical_store"))
+        if memory_profile == "local" and canonical_store not in {"sqlite", *FILE_MEMORY_STORES}:
+            findings.append(issue("local-canonical-store", "Use the SQLite reference or explicitly preserve an existing governed file store", path="memory.canonical_store"))
         if memory.get("vector_index") == "pgvector" and canonical_store != "postgresql":
             findings.append(issue("pgvector-store-required", "pgvector requires PostgreSQL canonical storage", path="memory.vector_index"))
         if memory.get("graph_store") == "neo4j":
@@ -321,8 +334,9 @@ def validate_blueprint(value: dict[str, Any]) -> list[dict[str, Any]]:
     if isinstance(service, dict):
         for field in ("max_steps", "max_tokens", "deadline_seconds", "latency_slo_ms"):
             actual = service.get(field)
-            if not isinstance(actual, int) or isinstance(actual, bool) or actual < 1:
-                issues.append(issue("invalid-budget", "Expected a positive integer", path=f"service.{field}"))
+            minimum = 0 if field == "max_steps" else 1
+            if not isinstance(actual, int) or isinstance(actual, bool) or actual < minimum:
+                issues.append(issue("invalid-budget", "Step count may be zero (planning only); other integer budgets must be positive", path=f"service.{field}"))
         cost = service.get("max_cost_usd")
         if not isinstance(cost, (int, float)) or isinstance(cost, bool) or cost < 0:
             issues.append(issue("invalid-budget", "Expected a non-negative number", path="service.max_cost_usd"))
@@ -515,6 +529,8 @@ def _experience_manifest(blueprint: dict[str, Any], recipe: dict[str, Any]) -> d
         default_surfaces = BROWSER_CHAT_SURFACES
     elif profile == "operations_console":
         default_surfaces = OPERATIONS_SURFACES
+    elif profile == "native_chat":
+        default_surfaces = {"conversation", "settings", "account", "data_sources", "run_controls", "artifacts"}
     surfaces = sorted(default_surfaces | _string_set(experience.get("surfaces")))
     generated = "browser-react-fastapi" in recipe.get("overlays", [])
     return {
@@ -574,8 +590,10 @@ def _deployment_plan(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[
     memory = normalized["memory"]
     engagement = normalized["delivery"]["engagement"]
     dependencies: set[str] = set()
-    if experience["profile"] != "headless":
+    if experience["profile"] in {"browser_chat", "operations_console"}:
         dependencies.update({"python-fastapi-control-plane", "react-vite-build"})
+    elif experience["profile"] == "native_chat":
+        dependencies.update({"existing-cli-runtime-integration", experience["realtime"] + "-client-adapter"})
     if memory["enabled"]:
         dependencies.add(memory["canonical_store"])
         for key in ("keyword_index", "vector_index", "graph_store", "framework"):
@@ -584,8 +602,10 @@ def _deployment_plan(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[
                 dependencies.add(value)
     approval_gates = []
     if engagement in {"guided_install", "end_to_end"}:
-        approval_gates.extend(["system_dependency_install", "secret_configuration", "network_exposure"])
-        if memory["enabled"]:
+        approval_gates.extend(["system_dependency_install", "secret_configuration"])
+        if experience["profile"] in {"browser_chat", "operations_console"}:
+            approval_gates.append("network_exposure")
+        if memory["enabled"] and memory["canonical_store"] not in FILE_MEMORY_STORES:
             approval_gates.extend(["data_backup", "data_migration", "production_cutover"])
     return {
         "version": "1.0",
@@ -598,8 +618,11 @@ def _deployment_plan(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[
         "approval_gates": approval_gates,
         "validation_commands": list(recipe["validation_commands"]),
         "migration": {
-            "required": bool(memory["enabled"] and memory["profile"] in {"hybrid", "enterprise"}),
-            "strategy": "backup_sample_backfill_shadow_compare_approved_cutover",
+            "required": bool(memory["enabled"] and memory["profile"] in {"hybrid", "enterprise"}
+                             and memory["canonical_store"] not in FILE_MEMORY_STORES),
+            "strategy": "preserve_existing_file_adapter_no_implicit_migration"
+            if memory["canonical_store"] in FILE_MEMORY_STORES
+            else "backup_sample_backfill_shadow_compare_approved_cutover",
         },
         "cutover": {"requires_human_approval": True, "automatic": False},
         "rollback": {"required": True, "verified_before_cutover": True},
@@ -608,6 +631,11 @@ def _deployment_plan(blueprint: dict[str, Any], recipe: dict[str, Any]) -> dict[
 
 
 def apply_blueprint(blueprint: dict[str, Any], recipe: dict[str, Any], target: Path) -> dict[str, Any]:
+    # The minimal runnable templates enforce a positive step count. Planning
+    # can describe an existing runtime with no fixed count; do not silently
+    # generate range(0), remove the bound, or claim those guards exist here.
+    if blueprint.get("service", {}).get("max_steps") == 0:
+        raise ValueError("governed-runtime-required: max_steps=0 is planning-only; integrate explicit deadline, cancellation, token and no-progress guards before execution")
     target = target.expanduser().resolve()
     generated = scaffold_project(
         recipe["scaffold"],
@@ -616,6 +644,21 @@ def apply_blueprint(blueprint: dict[str, Any], recipe: dict[str, Any], target: P
         overlays=tuple(recipe.get("overlays", [])),
     )
     _configure_integrations(target, blueprint)
+    memory = normalize_profiles(blueprint)["memory"]
+    if memory["canonical_store"] in FILE_MEMORY_STORES:
+        # Preserve the requested topology as an integration plan. Never leave
+        # a misleading SQLite connection or enable an unimplemented adapter.
+        write_json(target / "config/memory.config.json", {
+            "version": "1.0", "enabled": False, "profile": memory["profile"],
+            "canonical_store": memory["canonical_store"], "keyword_index": memory["keyword_index"],
+            "vector_index": memory["vector_index"], "graph_store": memory["graph_store"],
+            "framework": memory["framework"], "connection": {"database_url": None, "credential_ref": None},
+            "markdown": {"mode": "scoped_canonical" if memory["canonical_store"] == "scoped_markdown" else "disabled"},
+            "consent_required": blueprint["data_governance"]["consent_required"],
+            "retention_days": blueprint["data_governance"]["retention_days"],
+            "authorization_before_ranking": True, "one_canonical_store": True,
+            "adapter_status": "planned_existing_integration",
+        })
     factory = target / "factory"
     write_json(factory / "agent-blueprint.json", blueprint)
     write_json(factory / "build-recipe.json", recipe)

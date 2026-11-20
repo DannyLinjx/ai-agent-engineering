@@ -31,3 +31,22 @@ Use a secret manager or injected short-lived credential reference. Tools receive
 Cover in-workspace and out-of-workspace access, sensitive files, normal and destructive writes, ordinary and high-risk commands, upload/communication, production scopes, expired or rejected approval, argument mutation after approval, tenant mismatch, logging redaction, and policy precedence.
 
 Use `templates/permission-policy.yaml`, `schemas/tool-manifest.schema.json`, and `scripts/audit_agent_safety.py`.
+
+## Publishing generalized experience
+
+Permission to update a reusable Skill does not permit publishing its source
+projects. Publish general methods and independently synthetic examples. Exclude
+project names, profiles, code, internal architecture/configuration, paths,
+screenshots and operational history unless the user separately authorizes those
+exact disclosures to that destination. Inspect payload meaning as well as secret
+patterns: a project description can be out of scope without containing a secret.
+A normal cleanup commit leaves its parent history accessible; report that limit
+and obtain the necessary authority before destructive history changes.
+
+## Authorization continuity and human input
+
+Keep an authority ledger for the actual action/target/payload/scope/expiry. A still-valid grant for the same material operation can cover necessary steps of the requested task; do not ask at every phase or every public read. Changed destinations, private-data-derived queries, shared-service changes, installation, system permissions or higher-risk effects may require a new decision. Download authority is not private-data egress or cloud-tracing authority.
+
+Ask User clarification is not an approval receipt. Client `approved_by` or model `approved=true` cannot mint authority. Moving management into a personal Settings menu does not change backend workspace/admin rights; direct routes/IPC/CLI calls enforce the same checks. Revocation applies before cached/derived plaintext access, execution and final delivery.
+
+Use the platform's normal approval mechanism. Do not manipulate system permission stores, bypass a lock screen, weaken isolation, change shells/languages or hide background execution after rejection. Explain the exact blocked action and continue unaffected authorized work. For explicitly authorized irreversible disposal, record the precise data-loss boundary rather than claiming a nonexistent rollback or storing an unwanted giant duplicate.
