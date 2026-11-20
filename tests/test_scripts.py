@@ -201,7 +201,7 @@ class SkillScriptTests(unittest.TestCase):
             root = Path(tmp)
             blueprint_path = root / "chinese-external-write-blueprint.json"
             blueprint = json.loads((ROOT / "templates/agent-blueprint.json").read_text(encoding="utf-8"))
-            blueprint["autonomy"]["allowed_actions"].append("向外部系统写入客户回复")
+            blueprint["autonomy"]["allowed_actions"].append("\u5411\u5916\u90e8\u7cfb\u7edf\u5199\u5165\u5ba2\u6237\u56de\u590d")
             blueprint["autonomy"]["approval_required_actions"].remove("external_write")
             blueprint_path.write_text(json.dumps(blueprint, ensure_ascii=False), encoding="utf-8")
             recipe_path = root / "chinese-external-write-recipe.json"

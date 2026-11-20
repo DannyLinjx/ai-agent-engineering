@@ -16,7 +16,7 @@ Default development/test configuration is no channel, a deterministic mock model
 
 ## Supported channel adapters
 
-The reference catalog supports `cli`, `web`, `api`, `webhook`, `telegram`, `feishu`, `lark`, `wecom`, `wechat_official_account`, `slack`, `discord`, `microsoft_teams`, and `email`. Treat Feishu and international Lark as separate configuration types even when they share an implementation family. `wecom` means 企业微信.
+The reference catalog supports `cli`, `web`, `api`, `webhook`, `telegram`, `feishu`, `lark`, `wecom`, `wechat_official_account`, `slack`, `discord`, `microsoft_teams`, and `email`. Treat Feishu and international Lark as separate configuration types even when they share an implementation family. `wecom` refers to WeCom.
 
 Every channel adapter declares stable ID, type, enabled/required flags, credential references, and provider-specific settings. Implement a common contract for inbound normalization, outbound send, health, and shutdown. Normalize tenant/user/channel/conversation/message IDs, locale, attachments, idempotency key, reply target, and cancellation.
 
@@ -78,7 +78,7 @@ python scripts/configure_integrations.py --output config/integrations.config.jso
 python scripts/validate_integration_config.py --config config/integrations.config.json --profile development
 ```
 
-Feishu plus 企业微信, an OpenAI provider, and a GitHub MCP stub:
+Feishu plus WeCom, an OpenAI provider, and a GitHub MCP stub:
 
 ```bash
 python scripts/configure_integrations.py \

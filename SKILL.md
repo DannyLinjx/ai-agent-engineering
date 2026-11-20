@@ -54,7 +54,7 @@ Treat Channel adapters, live Model Providers, and MCP servers as independent, us
 
 - Do not require the user to choose any Channel or MCP server. Default both to `none`.
 - Do not require a live Model Provider for scaffolding, core runtime work, deterministic tests, or offline evals. Default development/test to `mock`.
-- Accept Telegram, Feishu, Lark, WeCom/企业微信, WeChat Official Account, Slack, Discord, Microsoft Teams, email, webhook, CLI, web, or API adapters through configuration; never hard-code Telegram as the only channel.
+- Accept Telegram, Feishu, Lark, WeCom, WeChat Official Account, Slack, Discord, Microsoft Teams, email, webhook, CLI, web, or API adapters through configuration; never hard-code Telegram as the only channel.
 - If an optional integration is unselected, mark its tests `skipped` or `not_applicable`; do not fail the core workflow and do not ask the user to configure it.
 - Require a real provider only for a requested live-model acceptance criterion or `production` profile. Channels and MCP remain optional unless the charter explicitly marks them required.
 - Store only `secret://`, `env://`, or `vault://` credential references in config. Never request or write raw credentials into project files.

@@ -1,120 +1,133 @@
 # AI Agent Engineering
 
-AI Agent Engineering 是一套面向 Agent 系统的工程方法与实践规范，覆盖从设计、构建、重构、调试、扩展、测试、审计，到文档化与生产交付的完整生命周期。
+AI Agent Engineering provides engineering methods and practical standards for agent systems, covering the full lifecycle from design, building, refactoring, debugging, extension, testing, and auditing to documentation and production delivery.
 
-本 Skill 遵循一条基本原则：模型只在类型化契约的范围内做出决策，而授权、预算、执行、持久化与验证等关键控制，均由确定性的程序代码完成。据此交付的 Agent 不是单一的脚本或提示词方案，而是可运行、可测试、可审计的增量系统。
+This Skill follows one basic principle: the model makes decisions only within typed contracts, while deterministic code handles authorization, budgets, execution, persistence, and verification. The result is an incremental system that can run, be tested, and be audited, rather than a single script or a prompt-only solution.
 
-本 Skill 适用于创建或升级工作区编码 Agent、持久工具调用 Agent、研究与 RAG Agent、电脑控制 Agent 及多 Agent 系统；也适用于将现有聊天机器人或单次 LLM 调用升级为安全、持久、可测试的完整 Agent 系统。
+Use this Skill to create or upgrade workspace coding agents, durable tool-using agents, research and RAG agents, computer-control agents, and multi-agent systems. It also supports upgrading an existing chatbot or one-shot LLM call into a safe, durable, testable agent system.
 
-## 目录
+## Contents
 
-- [它解决什么问题](#它解决什么问题)
-- [核心能力](#核心能力)
-- [客户端与记忆平台 Profile](#客户端与记忆平台-profile)
-- [设计理念](#设计理念)
-- [工作模式](#工作模式)
-- [阶段化构建 P0–P10](#阶段化构建-p0p10)
-- [可选集成规则](#可选集成规则)
-- [适用与不适用场景](#适用与不适用场景)
-- [快速开始](#快速开始)
-- [目录结构](#目录结构)
-- [环境要求](#环境要求)
-- [安装](#安装)
-- [使用方法](#使用方法)
-- [配置与契约](#配置与契约)
-- [模板](#模板)
-- [示例](#示例)
-- [参考资料导航](#参考资料导航)
-- [安全与人类控制](#安全与人类控制)
-- [验证与交付物](#验证与交付物)
-- [与其他 Skill 组合](#与其他-skill-组合)
-- [常见问题](#常见问题)
-- [开发与测试](#开发与测试)
-- [贡献](#贡献)
-- [许可证](#许可证)
+- [What It Solves](#what-it-solves)
+- [Core Capabilities](#core-capabilities)
+- [Client and Memory Platform Profiles](#client-and-memory-platform-profiles)
+- [Design Principles](#design-principles)
+- [Operating Modes](#operating-modes)
+- [Phased Build P0–P10](#phased-build-p0p10)
+- [Optional Integration Rules](#optional-integration-rules)
+- [When to Use It and When Not To](#when-to-use-it-and-when-not-to)
+- [Quick Start](#quick-start)
+- [Directory Structure](#directory-structure)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration and Contracts](#configuration-and-contracts)
+- [Templates](#templates)
+- [Examples](#examples)
+- [Reference Guide](#reference-guide)
+- [Security and Human Control](#security-and-human-control)
+- [Verification and Deliverables](#verification-and-deliverables)
+- [Combining with Other Skills](#combining-with-other-skills)
+- [FAQ](#faq)
+- [Development and Testing](#development-and-testing)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 它解决什么问题
+## What It Solves
 
-很多代码 Agent 能写出“一段能跑的代码”，却不一定会主动完成以下工作：
+Many coding agents can produce code that runs, but do not necessarily take the following steps on their own:
 
-- 先理解现有仓库、工程约束和未提交改动，再开始编辑；
-- 把业务目标翻译成类型化契约、能力矩阵和带证据的验收标准；
-- 让安全、权限、预算和取消机制成为**确定性代码**，而不是模型提示词的“自觉”；
-- 区分“写了计划”和“真的执行并通过了验证”；
-- 在缺少工具、权限或证据时诚实报告 `blocked`，而不是假装完成；
-- 交付可恢复的会话、检查点、记忆、可观测性和生产就绪证据；
-- 把 Channel、Model Provider 和 MCP 当作**可选、可配置、可替换**的集成，而不是硬编码死。
+- Understand the existing repository, engineering constraints, and uncommitted changes before editing.
+- Turn business objectives into typed contracts, capability matrices, and acceptance criteria backed by evidence.
+- Implement security, permissions, budgets, and cancellation as **deterministic code**, rather than relying on the model to follow prompt instructions voluntarily.
+- Distinguish writing a plan from executing it and passing verification.
+- Report `blocked` honestly when tools, authority, or evidence are missing, rather than pretending to be finished.
+- Deliver recoverable sessions, checkpoints, memory, observability, and production-readiness evidence.
+- Treat Channel, Model Provider, and MCP connections as **optional, configurable, replaceable** integrations rather than hard-coded choices.
 
-`ai-agent-engineering` 把上述动作组织成一条可复用的 Agent 工程流水线。它不是某个框架的代码生成器，也不会替你的项目决定技术栈；它负责让 Agent 按生产级工程方法发现、设计、实现、验证和交付一个 Agent 系统。
+`ai-agent-engineering` organizes these actions into a reusable agent-engineering workflow. It is not a code generator for a particular framework and does not choose your project's stack. It helps an agent discover, design, implement, verify, and deliver an agent system using production engineering methods.
 
-## 核心能力
+## Core Capabilities
 
-| 能力域 | 可以完成的工作 |
+| Capability Area | What It Covers |
 | --- | --- |
-| 设计（DESIGN） | 定义产品范围、架构、契约、威胁模型、数据模型、阶段计划与验收标准 |
-| 工厂（FACTORY） | 把企业需求转换为 Agent Blueprint、确定性 Build Recipe、候选项目、证据映射和人工发布清单 |
-| 构建（BUILD） | 从零搭建可运行的 Agent 增量，先安全后功能，先闭环后扩展 |
-| 重构（REFACTOR） | 把单体 `agent.py`/`agent.ts` 模块化，保持行为不变并通过前后契约测试 |
-| 审计（AUDIT） | 只读检查能力、架构、安全、评测与生产就绪缺口，输出带文件链接的证据 |
-| 调试（DEBUG） | 复现并定位循环、工具、上下文、记忆、权限、持久化、路由或集成故障 |
-| 扩展（EXTEND） | 一次增加一个有边界的工具、Skill、Hook、MCP、模型、Channel、记忆行为或子代理 |
-| 测试（TEST） | 建立确定性测试、场景、评测和回归门禁 |
-| 文档化（DOCUMENT） | 让架构、运维、部署和用户文档与当前代码保持一致 |
-| 运行时机（RUNTIME） | 有界 Agent 循环、计划/重规划、取消、超时、预算、失败与无进展检测 |
-| 工具系统（TOOLS） | 类型化工具注册表、命令/路径/网络安全、超时与输出上限 |
-| 上下文管理（CONTEXT） | Token 预算、产物卸载、压缩、注入边界 |
-| 记忆系统（MEMORY） | 生命周期、同意、检索、冲突、隔离与删除 |
-| 会话与检查点 | 持久化、恢复、回退、幂等与迁移 |
-| 权限与审批 | ALLOW/DENY/ASK、绑定参数的审批、凭据保护 |
-| 生命周期 Hook | 事件总线、确定性策略注入、失败行为 |
-| 子代理 | 有界委派、预算、DAG、结构化合并 |
-| MCP 集成 | 惰性发现、适配器、信任与降级 |
-| 模型路由 | 按能力/隐私/预算路由、回退、故障切换 |
-| 多用户隔离 | 租户/用户/工作区/缓存/凭据隔离 |
-| 可观测性 | 日志、追踪、指标、审计、成本、SLO |
-| 测试与评测 | 测试金字塔、评测用例、判官、回归门禁 |
-| 生产化 | 发布清单、金丝雀、事故、回滚 |
-| 安全模型 | 威胁模型、滥用用例、拒绝策略 |
+| DESIGN | Product scope, architecture, contracts, threat models, data models, phase plans, and acceptance criteria |
+| FACTORY | Enterprise requirements converted into an Agent Blueprint, deterministic Build Recipe, candidate project, evidence mapping, and human release checklist |
+| BUILD | Runnable agent increments from scratch: safety before features, a complete loop before expansion |
+| REFACTOR | Modularization of a monolithic `agent.py`/`agent.ts`, preserving behavior with before-and-after contract tests |
+| AUDIT | Read-only inspection of capability, architecture, security, evaluation, and production-readiness gaps, with file-linked evidence |
+| DEBUG | Reproduction and localization of failures in loops, tools, context, memory, permissions, persistence, routing, or integrations |
+| EXTEND | One bounded tool, Skill, Hook, MCP integration, model, Channel, memory behavior, or subagent at a time |
+| TEST | Deterministic tests, scenarios, evaluations, and regression gates |
+| DOCUMENT | Architecture, operations, deployment, and user documentation kept consistent with current code |
+| RUNTIME | Bounded agent loops, planning/replanning, cancellation, timeouts, budgets, failures, and no-progress detection |
+| TOOLS | Typed tool registries, command/path/network safety, timeouts, and output limits |
+| CONTEXT | Token budgets, artifact offloading, compaction, and injection boundaries |
+| MEMORY | Lifecycle, consent, retrieval, conflicts, isolation, and deletion |
+| Sessions and Checkpoints | Persistence, recovery, rewind, idempotency, and migration |
+| Permissions and Approvals | ALLOW/DENY/ASK, parameter-bound approvals, and credential protection |
+| Lifecycle Hooks | Event buses, deterministic policy injection, and failure behavior |
+| Subagents | Bounded delegation, budgets, DAGs, and structured merging |
+| MCP Integration | Lazy discovery, adapters, trust, and degradation |
+| Model Routing | Capability/privacy/budget routing, fallback, and failover |
+| Multi-user Isolation | Tenant/user/workspace/cache/credential isolation |
+| Observability | Logs, traces, metrics, audit, cost, and SLOs |
+| Testing and Evaluation | Test pyramids, evaluation cases, judges, and regression gates |
+| Production Readiness | Release checklists, canaries, incidents, and rollback |
+| Security Models | Threat models, abuse cases, and denial policies |
 
-## 客户端与记忆平台 Profile
+## Client and Memory Platform Profiles
 
-Factory 现在通过三组独立 Profile 让“Agent 创造 Agent”既能快速形成雏形，也
-能保留企业升级路径：Experience 选择 `headless`、`browser_chat`、
-`operations_console` 或 `native_chat`；Memory 选择禁用、`local`、`hybrid` 或 `enterprise`；
-Delivery 选择 `plan_only`、`guided_install` 或 `end_to_end`。旧 Blueprint 不写
-这些字段仍然有效，并使用 headless、禁用本地 Memory、plan-only 安全默认值。
+The Factory uses three independent profile groups so that an agent can quickly
+build another agent while preserving an enterprise upgrade path. Experience selects
+`headless`, `browser_chat`, `operations_console`, or `native_chat`; Memory selects
+disabled, `local`, `hybrid`, or `enterprise`; Delivery selects `plan_only`,
+`guided_install`, or `end_to_end`. Older Blueprints that omit these fields remain
+valid and use safe defaults: headless, local Memory disabled, and plan-only delivery.
 
-浏览器首个参考栈为 React/Vite + FastAPI，提供对话、Run 时间线、审批、产物、
-Memory 和可选运维控制台。浏览器仅显示安全投影；Agent 执行、授权与凭据解析
-始终留在受控 Runtime 边界。浏览器参考 Memory 雏形使用 SQLite + FTS5，企业参考使用 PostgreSQL；它们不强制迁移现有存储。每类记录保持唯一权威归属，可保留独立加密文件与有作用域的 Markdown；派生索引另管生命周期。详见 `references/client-experience.md`、`references/browser-experience.md` 与 `references/memory-deployment.md`。
+The first browser reference stack is React/Vite + FastAPI, with conversations, a
+Run timeline, approvals, artifacts, Memory, and an optional operations console.
+The browser displays safe projections only; agent execution, authorization, and
+credential resolution remain within the governed Runtime boundary. The browser
+reference Memory prototype uses SQLite + FTS5, and the enterprise reference uses
+PostgreSQL; neither forces migration of existing storage. Each record class has
+one authoritative owner, while independent encrypted files and scoped Markdown
+may be retained; derived indexes have their own lifecycle. See
+`references/client-experience.md`, `references/browser-experience.md`, and
+`references/memory-deployment.md`.
 
-浏览器候选同时包含响应式前端、后端控制面合同、Vitest/TypeScript/Vite 门禁、
-Playwright 桌面/平板/移动端工作流，以及只同步已验证构建产物的打包脚本。依赖
-安装与服务启动仍由用户在后续交付任务中明确选择，Factory 不会自动执行。
+The browser candidate also includes a responsive frontend, backend control-plane
+contracts, Vitest/TypeScript/Vite gates, Playwright desktop/tablet/mobile workflows,
+and a packaging script that syncs only verified build artifacts. The user must
+still explicitly select dependency installation and service startup in a later
+delivery task; the Factory does not perform them automatically.
 
-原生 `native_chat/native_cli` 支持 `stdio/local_ipc` 规划与清单，不要求 WebView、HTTP、React 或第二套 Runtime。当前 Factory 可生成核心候选，但原生 GUI、`encrypted_files/scoped_markdown` 记忆适配器仍标 `planned`，不能说已生成完整实现。Blueprint 的 `max_steps=0` 可表达无固定次数上限；旧可执行脚手架缺少完整保护，apply 会在写入前拒绝，需对接已有受控 Runtime。
+Native `native_chat/native_cli` supports `stdio/local_ipc` planning and manifests without requiring WebView, HTTP, React, or a second Runtime. The current Factory can generate a core candidate, but native GUI and `encrypted_files/scoped_markdown` memory adapters remain `planned`; they must not be described as fully generated implementations. A Blueprint's `max_steps=0` can express no fixed step-count limit; the older execution scaffold lacks the complete safeguards, so apply rejects it before writing and requires integration with an existing governed Runtime.
 
-新增按需参考：
+Additional references to load as needed:
 
-- [客户端与富消息/IME](references/client-experience.md)、[原生 CLI 客户端与启动器](references/native-cli-client.md)。
-- [真实能力状态与退役](references/capability-readiness.md)、[来源/Reader/批处理](references/document-source-pipelines.md)。
-- [确定性 Prompt 与受控学习](references/prompt-policy-learning.md)、[运行资源迁移/清理](references/runtime-storage-operations.md)。
+- [Client experience and rich messages/IME](references/client-experience.md), [native CLI clients and launchers](references/native-cli-client.md).
+- [Actual capability status and retirement](references/capability-readiness.md), [sources/Readers/batching](references/document-source-pipelines.md).
+- [Deterministic prompts and controlled learning](references/prompt-policy-learning.md), [runtime resource migration/cleanup](references/runtime-storage-operations.md).
 
-经验更新只应沉淀通用工程方法和独立构造的合成示例。允许更新或发布 Skill，
-不代表允许公开经验来源项目的名称、源码、架构快照、专属配置、路径、截图或操作历史。
-这些内容需要针对具体内容和目的地另行明确授权；删除项目名称本身不等于完成匿名化。
+Experience updates should capture general engineering methods and independently
+constructed synthetic examples only. Permission to update or publish a Skill does
+not permit publishing the originating project's name, source code, architecture
+snapshots, specific configuration, paths, screenshots, or operational history.
+Those disclosures require separate explicit authorization for the exact content
+and destination; removing the project name alone does not anonymize the material.
 
-## 设计理念
+## Design Principles
 
-### 模型提议，确定性代码决策
+### The Model Proposes; Deterministic Code Decides
 
-这是本 Skill 最核心的一条原则：**模型可以提出计划、生成决策、调用工具，但所有授权、预算、执行、持久化和验证必须由确定性代码完成**。模型输出、检索内容、记忆、Skill、Hook、MCP 元数据/结果、子代理结果都是**不可信输入**，它们永远不能扩展工具、权限、凭据、工作区、预算或租户范围。
+The central principle is: **the model may propose plans, generate decisions, and call tools, but deterministic code must own all authorization, budgets, execution, persistence, and verification**. Model output, retrieved content, memory, Skills, Hooks, MCP metadata/results, and subagent results are **untrusted inputs**. They can never expand tools, permissions, credentials, workspaces, budgets, or tenant scope.
 
-所有副作用必须经过同一条确定性权限路径。硬拒绝（hard deny）优先于一切；需要人工审批的动作绑定主体、运行、工具/版本、规范化参数、风险与过期时间，参数一旦变化必须重新审批。
+Every side effect must pass through the same deterministic permission path. A hard deny takes precedence. Actions requiring human approval bind the principal, Run, tool/version, normalized arguments, risk, and expiry; changed arguments require new approval.
 
-### 分层架构
+### Layered Architecture
 
-运行时由可替换模块组成，模块之间通过显式契约连接。推荐分层如下（详见 `assets/architecture-diagram.mmd`）：
+The runtime consists of replaceable modules connected through explicit contracts. The recommended layers are shown below; see `assets/architecture-diagram.mmd`:
 
 ```mermaid
 flowchart TB
@@ -139,18 +152,18 @@ flowchart TB
   O -.-> SUB["Bounded subagents"]
 ```
 
-必须遵守的架构不变量：
+Required architecture invariants:
 
-- 领域契约**不依赖**任何 Provider SDK、CLI 框架、数据库或 MCP 库；适配器向内依赖契约；
-- 检查点、产物、审计、遥测、评测、路由和子代理作为**旁路服务（sidecar）**；
-- 合法状态转换必须持久化，检查点带版本，配置带指纹；
-- 身份/租户/会话/工作区范围通过工具、任务、Hook、子代理、MCP、存储和遥测**不可变传播**；
-- 端到端支持取消、截止时间、幂等、结构化错误、配置来源记录和密钥脱敏；
-- 控制面（配置、策略、工具/Skill 目录、模型档案、路由、功能开关、评测定义）与数据面（消息、工具输入输出、产物、记忆、会话、遥测）分离，分别授权和保留。
+- Domain contracts **do not depend** on Provider SDKs, CLI frameworks, databases, or MCP libraries; adapters depend inward on contracts.
+- Checkpoints, artifacts, audit, telemetry, evaluations, routing, and subagents act as **sidecar services**.
+- Persist legal state transitions, version checkpoints, and fingerprint configuration.
+- Propagate identity/tenant/session/workspace scope **immutably** through tools, jobs, Hooks, subagents, MCP, storage, and telemetry.
+- Support end-to-end cancellation, deadlines, idempotency, structured errors, configuration provenance, and secret redaction.
+- Separate the control plane—configuration, policies, tool/Skill catalogs, model profiles, routing, feature flags, and evaluation definitions—from the data plane—messages, tool inputs/outputs, artifacts, memory, sessions, and telemetry—with independent authorization and retention.
 
-### 不可妥协的控制循环
+### The Non-negotiable Control Loop
 
-参考 `assets/agent-loop.mmd`，所有 Agent 运行时必须实现如下闭环：
+Every agent runtime must implement the following loop; see `assets/agent-loop.mmd`:
 
 ```mermaid
 flowchart TD
@@ -175,213 +188,213 @@ flowchart TD
   L -->|fail| Z
 ```
 
-要点：
+Key points:
 
-1. 每次迭代前检查取消、截止时间、步数/重规划、Token/成本、失败、重复动作与进展；
-2. 构建**已测量、有范围**的上下文包；
-3. 调用模型并校验**类型化决策**；
-4. 每个工具都要规范化输入、按实际参数做风险分类、走权限/审批、以沙箱/超时/输出上限/取消执行，校验/脱敏结果，卸载大产物，记录回执并检查点；
-5. 只根据新证据重规划；
-6. 对照显式完成标准验证候选结果；
-7. 只有验证通过才算完成；否则在预算内重规划，或返回失败/部分/已取消及未满足的标准。
+1. Before each iteration, check cancellation, deadlines, steps/replans, Tokens/cost, failures, repeated actions, and progress.
+2. Build a **measured, scoped** context packet.
+3. Call the model and validate a **typed decision**.
+4. For each tool, normalize inputs, classify risk using actual arguments, apply permissions/approvals, execute with sandbox/timeout/output-limit/cancellation controls, validate/redact results, offload large artifacts, record receipts, and checkpoint.
+5. Replan only from new evidence.
+6. Verify candidate results against explicit completion criteria.
+7. Complete only after verification passes; otherwise replan within budget or return failed/partial/cancelled with the unmet criteria.
 
-系统必须检测“重复工具+参数指纹”和“无进展状态”。非幂等副作用**绝不**在缺少幂等键与对账的情况下重试。
+Detect repeated tool+argument fingerprints and no-progress states. **Never** retry non-idempotent side effects without an idempotency key and reconciliation.
 
-## 工作模式
+## Operating Modes
 
-根据请求推断最小适用的模式，只读请求不得修改代码或外部系统：
+Infer the smallest applicable mode from the request. Read-only requests must not modify code or external systems:
 
-| 模式 | 主要产出 | 是否修改 | 必需证据 |
+| Mode | Main Deliverables | Modifies State? | Required Evidence |
 |---|---|---:|---|
-| DESIGN | 架构、契约、ADR、能力计划 | 否 | 评审过的设计门禁 |
-| FACTORY | Blueprint、Build Recipe、候选 Agent、证据与发布清单 | 是 | 候选门禁 + 人工发布审批 |
-| BUILD | 可运行的 Agent 增量 | 是 | 测试 + 场景 trace |
-| REFACTOR | 行为保持的模块化运行时 | 是 | 前后契约测试 |
-| AUDIT | 缺口、风险与生产就绪报告 | 否 | 带文件链接的发现 |
-| DEBUG | 复现原因与（获授权时的）修复 | 可能 | 先失败后通过的证据 |
-| EXTEND | 增加一个有界能力 | 是 | 聚焦回归测试 |
-| TEST | 评测与验证工具链 | 是 | 可执行用例与报告 |
-| DOCUMENT | 与当前代码一致的架构/运维文档 | 是 | 文档对照代码核验 |
+| DESIGN | Architecture, contracts, ADRs, capability plans | No | Reviewed design gates |
+| FACTORY | Blueprint, Build Recipe, candidate agent, evidence, and release checklist | Yes | Candidate gates + human release approval |
+| BUILD | A runnable agent increment | Yes | Tests + scenario traces |
+| REFACTOR | A modular runtime with preserved behavior | Yes | Before-and-after contract tests |
+| AUDIT | Gap, risk, and production-readiness report | No | File-linked findings |
+| DEBUG | Reproduced cause and, when authorized, a fix | Possibly | Evidence of failure followed by a pass |
+| EXTEND | One additional bounded capability | Yes | Focused regression tests |
+| TEST | Evaluation and verification tooling | Yes | Executable cases and reports |
+| DOCUMENT | Architecture/operations documentation consistent with current code | Yes | Documentation checked against code |
 
-## 阶段化构建 P0–P10
+## Phased Build P0–P10
 
-先采用用户已给定的阶段、编号与验收入口；下表仅是没有既定计划时的参考依赖顺序，不替用户重新规划或一次实现全部模块。
+Use the user's existing phases, identifiers, and acceptance entry points first. The table below is a reference dependency order only when no plan already exists; it does not replace the user's plan or require implementing every module at once.
 
-不要同时启动所有模块。先交付**最小的安全闭环**，通过该阶段门禁后再扩展：
+Do not start every module simultaneously. Deliver the **smallest secure closed loop** first, pass its phase gate, and then expand:
 
-| 阶段 | 范围 | 出口门禁 |
+| Phase | Scope | Exit Gate |
 |---|---|---|
-| P0 | 章程、契约、威胁模型、权限、预算、中止 | 不安全动作无法绕过确定性策略 |
-| P1 | 最小模型调用与有界 Agent 循环 | 无工具、单工具、失败、取消、最大步数用例通过 |
-| P2 | 类型化工具注册表与执行器 | schema、超时、输出上限、错误封装、幂等有记录 |
-| P3 | 会话、持久化、检查点、回退 | 重启与恢复测试通过 |
-| P4 | 上下文构建、产物卸载、压缩 | 目标与约束在压缩后保留 |
-| P5 | 有范围的记忆生命周期与检索 | 同意、冲突、隔离、删除行为通过 |
-| P6 | 惰性 Skill 与生命周期 Hook | 选择与 Hook 失败策略确定 |
-| P7 | 有界子代理与可选惰性 MCP/Channel | 隔离/结果契约通过；未选择的适配器标记不适用 |
-| P8 | 验证器、评测器、评审路径 | 完成声明必须有证据 |
-| P9 | 能力感知的模型路由器 | 回退、隐私、预算、故障用例通过 |
-| P10 | 遥测、部署、SLO、runbook、回滚 | 生产就绪门禁通过 |
+| P0 | Charter, contracts, threat model, permissions, budgets, abort | Unsafe actions cannot bypass deterministic policy |
+| P1 | Minimal model call and bounded agent loop | No-tool, one-tool, failure, cancellation, and max-step cases pass |
+| P2 | Typed tool registry and executor | Schemas, timeouts, output limits, error envelopes, and idempotency are recorded |
+| P3 | Sessions, persistence, checkpoints, rewind | Restart and recovery tests pass |
+| P4 | Context construction, artifact offloading, compaction | Goals and constraints survive compaction |
+| P5 | Scoped memory lifecycle and retrieval | Consent, conflict, isolation, and deletion behavior pass |
+| P6 | Lazy Skills and lifecycle Hooks | Selection and Hook failure policies are deterministic |
+| P7 | Bounded subagents and optional lazy MCP/Channels | Isolation/result contracts pass; unselected adapters are marked not applicable |
+| P8 | Verifiers, evaluators, and review paths | Completion claims require evidence |
+| P9 | Capability-aware model router | Fallback, privacy, budget, and failure cases pass |
+| P10 | Telemetry, deployment, SLOs, runbooks, rollback | Production-readiness gates pass |
 
-每个阶段的计划都要写明目标、影响文件、契约、迁移、风险、测试、完成标准与回滚。
+Every phase plan must state its goal, affected files, contracts, migrations, risks, tests, completion criteria, and rollback.
 
-## 可选集成规则
+## Optional Integration Rules
 
-Channel 适配器、线上 Model Provider 和 MCP 服务器是**独立、用户可选**的集成：
+Channel adapters, live Model Providers, and MCP servers are **independent, user-selectable** integrations:
 
-- 不要求用户必须选择任何 Channel 或 MCP Server，两者默认 `none`；
-- 脚手架、核心运行时、确定性测试和离线评测**不要求**线上 Model Provider，开发/测试默认 `mock`；
-- 通过配置接受 Telegram、飞书/Lark、企业微信、微信公众号、Slack、Discord、Microsoft Teams、邮件、webhook、CLI、Web 或 API 适配器，绝不把 Telegram 硬编码为唯一 Channel；
-- 未选中的可选集成，其测试标记为 `skipped` 或 `not_applicable`，不能阻塞核心工作流，也不能要求用户先配置；
-- 只有明确要求的“线上模型验收标准”或 `production` profile 才需要真实 Provider；Channel 与 MCP 除非章程明确要求，否则始终可选；
-- 配置中只允许 `secret://`、`env://`、`vault://` 形式的凭据引用，绝不把原始凭据写入项目文件。
+- Do not require the user to select any Channel or MCP Server; both default to `none`.
+- Scaffolding, core runtime work, deterministic tests, and offline evaluations **do not require** a live Model Provider. Development/test defaults to `mock`.
+- Accept Telegram, Feishu/Lark, WeCom, WeChat Official Account, Slack, Discord, Microsoft Teams, email, webhook, CLI, Web, or API adapters through configuration; never hard-code Telegram as the only Channel.
+- Mark tests for unselected optional integrations `skipped` or `not_applicable`; they must not block the core workflow or require the user to configure them first.
+- A real Provider is required only for an explicitly requested live-model acceptance criterion or a `production` profile. Channel and MCP remain optional unless the charter explicitly requires them.
+- Store only credential references in `secret://`, `env://`, or `vault://` form; never write raw credentials to project files.
 
-用户未做选择时，自动生成有效的核心版 `config/integrations.config.json` 并继续执行，报告中分别列出 selected / skipped / blocked 集成。
+When the user makes no selection, generate a valid core-only `config/integrations.config.json` and continue. Report selected / skipped / blocked integrations separately.
 
-## 适用与不适用场景
+## When to Use It and When Not To
 
-### 适合
+### Suitable Uses
 
-- 从零构建编码 Agent、研究 Agent、RAG Agent、电脑控制 Agent、办公 Agent 或多 Agent 工作流；
-- 把现有聊天机器人或单次 LLM 调用改造成安全、持久、可测试、可恢复的 Agent；
-- 为 Agent 增加工具调用、有界循环、规划、上下文、记忆、会话/检查点、Skill、Hook、权限与审批、Channel、子代理、MCP、模型路由、验证/评测、可观测性、多用户隔离、部署与恢复；
-- 对已有 Agent 运行时做只读审计（架构、安全、能力、评测、生产就绪）；
-- 调试 Agent 的循环/工具/上下文/记忆/权限/持久化/路由/集成故障；
-- 把 Agent 项目按 P0–P10 阶段推进到生产，并产出证据。
+- Building coding agents, research agents, RAG agents, computer-control agents, office agents, or multi-agent workflows from scratch.
+- Converting an existing chatbot or one-shot LLM call into a safe, durable, testable, recoverable agent.
+- Adding tool calling, bounded loops, planning, context, memory, sessions/checkpoints, Skills, Hooks, permissions and approvals, Channels, subagents, MCP, model routing, verification/evaluation, observability, multi-user isolation, deployment, and recovery.
+- Read-only audits of an existing agent runtime's architecture, security, capabilities, evaluations, or production readiness.
+- Debugging failures in an agent's loops/tools/context/memory/permissions/persistence/routing/integrations.
+- Advancing an agent project through P0–P10 to production with evidence.
 
-### 不适合
+### Unsuitable Uses
 
-- 只需要一个与技术概念相关的简短回答或一段无仓库上下文的示例代码；
-- 只做设计建议、不涉及 Agent 系统实现或改造的咨询；
-- 要求不设预算、不设边界、无限重试的开放式自动执行；
-- 期望仅靠提示词文本完成安全控制的“纯 Prompt Agent”；
-- 没有明确工作目录、授权边界或验收目标的执行；
-- 未经授权自动 commit、push、部署或修改生产数据。
+- A short answer about a technical concept or sample code without repository context.
+- Design-only consulting that does not involve implementing or modifying an agent system.
+- Open-ended automatic execution without budgets or boundaries and with unlimited retries.
+- A prompt-only agent expected to enforce safety through prompt text alone.
+- Execution without an explicit working directory, authorization boundary, or acceptance objective.
+- Unauthorized automatic commits, pushes, deployments, or production-data changes.
 
-## 快速开始
+## Quick Start
 
-前提：Python 3.10+（推荐 3.11），脚本仅依赖标准库。
+Prerequisite: Python 3.10+ (3.11 recommended). Scripts use only the standard library.
 
 ```bash
-# 1. 从企业 Blueprint 确定性规划候选（不修改目标目录）
+# 1. Deterministically plan a candidate from an enterprise Blueprint (without modifying the target directory)
 python3 scripts/create_agent_from_blueprint.py \
   --blueprint examples/enterprise-agent-blueprint.json \
   --target ./service-agent \
   --plan ./build-recipe.json
 
-# 2. 审阅 Recipe 并解决 blockers 后，生成候选项目（不会发布生产）
+# 2. Review the Recipe and resolve blockers, then generate a candidate project (without production deployment)
 python3 scripts/create_agent_from_blueprint.py \
   --blueprint examples/enterprise-agent-blueprint.json \
   --target ./service-agent \
   --apply \
   --report ./creation-report.json
 
-# 也可以直接创建 Python/TypeScript 可执行参考脚手架，或语言中立 generic 脚手架
+# Or directly create a runnable Python/TypeScript reference scaffold or a language-neutral generic scaffold
 python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
 python3 scripts/scaffold_agent_project.py --language typescript --name "My Agent" --target ./my-agent
 python3 scripts/scaffold_agent_project.py --language generic --name "My Agent" --target ./my-agent
 
-# 3. 生成核心版可选集成配置（Channel=MCP=none，模型=mock）
+# 3. Generate core-only optional integration configuration (Channel=MCP=none, model=mock)
 python3 scripts/configure_integrations.py --output my-agent/config/integrations.config.json
 
-# 4. 校验集成配置并按 profile 判断哪些测试该跑/该跳过
+# 4. Validate integration configuration and classify tests to run or skip by profile
 python3 scripts/validate_integration_config.py --config my-agent/config/integrations.config.json --profile development --json
 
-# 5. 校验项目架构与安全基线
+# 5. Check project architecture and the safety baseline
 python3 scripts/validate_agent_architecture.py --project my-agent --json
 python3 scripts/audit_agent_safety.py --project my-agent --json
 
-# 6. 运行验收测试并产出机器可读证据报告
+# 6. Run acceptance tests and produce a machine-readable evidence report
 python3 scripts/run_agent_acceptance_tests.py --project my-agent \
   --config examples/acceptance-commands-python.json \
   --report my-agent/report.json
 
-# 7. 校验本 Skill 包自身的结构（发布前）
+# 7. Validate this Skill package's own structure before publication
 python3 scripts/validate_skill_structure.py --skill . --json
 ```
 
-Factory 是构建期控制面：`--plan` 不写目标目录，`--apply` 拒绝 blockers 和非空目标，只生成候选与待验证证据。生产发布、敏感数据访问和高风险权限始终保留人工审批。
+The Factory is a build-time control plane: `--plan` does not write to the target directory; `--apply` rejects blockers and non-empty targets and generates only candidates and evidence awaiting verification. Production releases, sensitive-data access, and high-risk permissions always retain human approval.
 
-浏览器 + 本地 Memory 可从 `examples/local-memory-agent-blueprint.json` 开始；
-企业运维控制台 + PostgreSQL 方案可从
-`examples/browser-enterprise-agent-blueprint.json` 开始。Factory 会写出 Experience、
-Memory 和 Deployment 三份治理清单，但不会安装依赖、启动服务或部署。
+Start with `examples/local-memory-agent-blueprint.json` for browser + local Memory,
+or `examples/browser-enterprise-agent-blueprint.json` for an enterprise operations
+console + PostgreSQL. The Factory writes Experience, Memory, and Deployment
+governance manifests, but does not install dependencies, start services, or deploy.
 
-现有项目始终保留原语言和框架；Python/TypeScript 模板只作为架构参考，不应成为迁移语言的理由。`generic` 模式只生成语言中立的配置、Schema、模块计划和契约测试计划，不生成 Python/TypeScript 源码。
+Always preserve the language and framework of existing projects. Python/TypeScript templates are architectural references, not reasons to migrate languages. The `generic` mode generates only language-neutral configuration, schemas, module plans, and contract-test plans, with no Python/TypeScript source code.
 
-然后复制并填写以下模板：`templates/agent-charter.md`（Agent 章程）、`templates/capability-matrix.md`（能力矩阵）、`templates/threat-model.md`（威胁模型）、`templates/agent-config.yaml`（运行时配置）、`templates/permission-policy.yaml`（权限策略）、`templates/acceptance-test-plan.md`（验收测试计划）。脚手架刻意保持最小化：存储、迁移、遥测、Skill、MCP 和业务工具都通过接口扩展，而不是削弱边界。
+Then copy and complete `templates/agent-charter.md` (agent charter), `templates/capability-matrix.md` (capability matrix), `templates/threat-model.md` (threat model), `templates/agent-config.yaml` (runtime configuration), `templates/permission-policy.yaml` (permission policy), and `templates/acceptance-test-plan.md` (acceptance-test plan). The scaffolds are intentionally minimal: extend storage, migrations, telemetry, Skills, MCP, and business tools through interfaces rather than weakening boundaries.
 
-## 目录结构
+## Directory Structure
 
 ```text
 ai-agent-engineering/
-├── SKILL.md                     # 技能入口：模式、工作流、阶段门禁、验证最低要求
-├── README.md                    # 本文件
+├── SKILL.md                     # Skill entry: modes, workflow, phase gates, minimum verification
+├── README.md                    # This file
 ├── agents/
-│   └── openai.yaml              # 可选 Host UI 元数据；缺失不影响核心 Skill
+│   └── openai.yaml              # Optional Host UI metadata; absence does not affect the core Skill
 ├── assets/
-│   ├── architecture-diagram.mmd # 分层架构图
-│   ├── agent-loop.mmd           # 不可妥协的控制循环图
-│   ├── permission-flow.mmd      # 权限流图
-│   ├── subagent-flow.mmd        # 子代理流程图
-│   ├── agent-factory-flow.mmd   # Blueprint 到候选 Agent 的受控工厂流程
-│   ├── browser-control-plane.mmd# 浏览器控制面与 Worker/SSE 边界
-│   ├── memory-platform.mmd      # Memory 权威存储、索引与生命周期
-│   ├── capability-catalog.json  # 能力目录、状态与优先级
-│   └── phase-gates.yaml         # P0–P10 阶段与必需证据
-├── references/                  # 20+ 份模块参考（按需读取，见参考资料导航）
-├── schemas/                     # 语言中立契约 schema（含 Blueprint 与 Profile 清单）
-├── scripts/                     # 确定性生成、验证与审计脚本（仅标准库）
+│   ├── architecture-diagram.mmd # Layered architecture diagram
+│   ├── agent-loop.mmd           # Non-negotiable control-loop diagram
+│   ├── permission-flow.mmd      # Permission-flow diagram
+│   ├── subagent-flow.mmd        # Subagent-flow diagram
+│   ├── agent-factory-flow.mmd   # Governed Factory flow from Blueprint to candidate agent
+│   ├── browser-control-plane.mmd# Browser control plane and Worker/SSE boundaries
+│   ├── memory-platform.mmd      # Memory authority, indexes, and lifecycle
+│   ├── capability-catalog.json  # Capability catalog, status, and priorities
+│   └── phase-gates.yaml         # P0–P10 phases and required evidence
+├── references/                  # 20+ module references (load as needed; see Reference Guide)
+├── schemas/                     # Language-neutral contract schemas, including Blueprint and Profile manifests
+├── scripts/                     # Deterministic generation, validation, and audit scripts (standard library only)
 ├── templates/
-│   ├── agent-blueprint.json     # 开发安全默认值的 Blueprint 模板
-│   ├── agent-charter.md         # Agent 章程模板
-│   ├── capability-matrix.md     # 能力矩阵模板
-│   ├── threat-model.md          # 威胁模型模板
-│   ├── agent-config.yaml        # 运行时配置模板
-│   ├── permission-policy.yaml   # 权限策略模板
-│   ├── acceptance-test-plan.md  # 验收测试计划模板
-│   ├── integrations.config.json # 可选集成配置模板
-│   ├── agent-instructions.md    # 最小安全指令模板
-│   ├── tool-manifest.json       # 默认空工具目录
-│   ├── tool-template.py/.ts     # 工具模板
-│   ├── hook-template.py/.ts     # Hook 模板
-│   ├── subagent-template.py/.ts # 子代理模板
-│   ├── skill-template.md        # Skill 模板
-│   ├── generic-agent/           # 语言中立模块与契约测试计划
-│   ├── python-agent/            # Python 可执行参考脚手架
-│   └── typescript-agent/        # TypeScript 可执行参考脚手架
-├── examples/                    # Agent、企业 Blueprint、配置、trace 与评测示例
+│   ├── agent-blueprint.json     # Blueprint template with development-safe defaults
+│   ├── agent-charter.md         # Agent charter template
+│   ├── capability-matrix.md     # Capability matrix template
+│   ├── threat-model.md          # Threat model template
+│   ├── agent-config.yaml        # Runtime configuration template
+│   ├── permission-policy.yaml   # Permission policy template
+│   ├── acceptance-test-plan.md  # Acceptance-test plan template
+│   ├── integrations.config.json # Optional integration configuration template
+│   ├── agent-instructions.md    # Minimal safe instruction template
+│   ├── tool-manifest.json       # Empty tool catalog by default
+│   ├── tool-template.py/.ts     # Tool templates
+│   ├── hook-template.py/.ts     # Hook templates
+│   ├── subagent-template.py/.ts # Subagent templates
+│   ├── skill-template.md        # Skill template
+│   ├── generic-agent/           # Language-neutral module and contract-test plans
+│   ├── python-agent/            # Runnable Python reference scaffold
+│   └── typescript-agent/        # Runnable TypeScript reference scaffold
+├── examples/                    # Agent, enterprise Blueprint, configuration, trace, and evaluation examples
 ├── evals/
-│   └── evals.json               # 本 Skill 自身的 10 个评测用例
+│   └── evals.json               # 10 evaluation cases for this Skill itself
 └── tests/
-    └── test_scripts.py          # 结构、脚本、安全负例与脚手架集成测试
+    └── test_scripts.py          # Structure, script, negative safety, and scaffold integration tests
 ```
 
-## 环境要求
+## Requirements
 
-- 能读取 `SKILL.md` 的 Agent/IDE（Codex、OpenClaw、Hermes、TRAE 等）；
-- Python 3.10 或更高版本（脚本仅使用标准库；脚手架代码使用 `X | None` 类型语法，Python 3.9 无法运行）；
-- 可选：Node.js/TypeScript 工具链（使用 TypeScript 脚手架时）；
-- 可选：Git（用于仓库状态与变更检查）；
-- Agent 对目标仓库具有与任务匹配的文件和终端权限。
+- An Agent/IDE that can read `SKILL.md`, such as Codex, OpenClaw, Hermes, or TRAE.
+- Python 3.10 or later. Scripts use only the standard library; scaffold code uses `X | None` type syntax and cannot run on Python 3.9.
+- Optional: a Node.js/TypeScript toolchain when using the TypeScript scaffold.
+- Optional: Git for repository status and change inspection.
+- File and terminal permissions for the target repository appropriate to the agent's task.
 
-## 安装
+## Installation
 
-请安装完整的 `ai-agent-engineering/` 目录，而不是只复制 `SKILL.md`——本 Skill 按需使用 `scripts/`、`templates/`、`references/`、`schemas/`、`assets/`、`examples/` 与 `evals/` 中的资源。
+Install the complete `ai-agent-engineering/` directory rather than copying only `SKILL.md`. This Skill loads resources from `scripts/`, `templates/`, `references/`, `schemas/`, `assets/`, `examples/`, and `evals/` as needed.
 
-以下安装示例假设本 Skill 独立发布在 GitHub 仓库 [DannyLinjx/ai-agent-engineering](https://github.com/DannyLinjx/ai-agent-engineering) 中，仓库根目录即 Skill 根目录（直接包含 `SKILL.md`）。
+The installation examples below assume that this Skill is published independently in [DannyLinjx/ai-agent-engineering](https://github.com/DannyLinjx/ai-agent-engineering), with the repository root also serving as the Skill root and directly containing `SKILL.md`.
 
 ### Codex
 
-Codex 默认从 `$CODEX_HOME/skills` 发现 Skill；未设置 `CODEX_HOME` 时，默认目录为 `~/.codex/skills`。
+Codex discovers Skills from `$CODEX_HOME/skills`; when `CODEX_HOME` is unset, the default is `~/.codex/skills`.
 
-推荐通过 Codex 内置的 `$skill-installer` 安装本仓库。在 Codex 对话中输入：
+Installing this repository with Codex's built-in `$skill-installer` is recommended. Enter the following in a Codex conversation:
 
 ```text
 Use $skill-installer to install https://github.com/DannyLinjx/ai-agent-engineering
 ```
 
-也可以手动安装完整目录：
+You can also install the complete directory manually:
 
 ```bash
 git clone https://github.com/DannyLinjx/ai-agent-engineering.git
@@ -390,9 +403,9 @@ mkdir -p "$CODEX_SKILLS_TARGET"
 cp -R ai-agent-engineering "$CODEX_SKILLS_TARGET/"
 ```
 
-安装后在下一轮对话或新任务中调用；若 Skill 列表没有刷新，重启 Codex。
+Invoke it in the next conversation turn or a new task after installation. Restart Codex if the Skill list has not refreshed.
 
-调用示例：
+Example invocation:
 
 ```text
 Use $ai-agent-engineering to build a secure coding agent in this repository, with optional channels, models, and MCP.
@@ -400,7 +413,7 @@ Use $ai-agent-engineering to build a secure coding agent in this repository, wit
 
 ### OpenClaw
 
-OpenClaw 支持从本地 Skill 目录安装。默认安装到当前 workspace 的 `skills/`，`--global` 安装到共享的 `~/.openclaw/skills`：
+OpenClaw supports installation from a local Skill directory. By default, installation targets `skills/` in the current workspace; `--global` installs to the shared `~/.openclaw/skills`:
 
 ```bash
 git clone https://github.com/DannyLinjx/ai-agent-engineering.git
@@ -409,18 +422,18 @@ openclaw skills install . --as ai-agent-engineering
 openclaw skills install . --as ai-agent-engineering --global
 ```
 
-如果 Skill 已安装在 Codex 目录中，也可以使用 OpenClaw 官方迁移命令：
+If the Skill is already installed in the Codex directory, you can also use OpenClaw's official migration commands:
 
 ```bash
 openclaw migrate plan codex
 openclaw migrate codex
 ```
 
-若安装成功但不可调用，请检查 OpenClaw 的 Agent allowlist（`agents.defaults.skills` 或该 Agent 的技能列表）。
+If installation succeeds but the Skill cannot be invoked, check OpenClaw's Agent allowlist (`agents.defaults.skills` or the Agent's skill list).
 
 ### Hermes Agent
 
-Hermes 将用户 Skill 放在 `~/.hermes/skills/`：
+Hermes stores user Skills in `~/.hermes/skills/`:
 
 ```bash
 git clone https://github.com/DannyLinjx/ai-agent-engineering.git
@@ -429,17 +442,17 @@ cp -R ai-agent-engineering "$HOME/.hermes/skills/"
 hermes skills list
 ```
 
-启动新会话并调用：
+Start a new session and invoke:
 
 ```bash
 hermes chat -q "/ai-agent-engineering design and scaffold a research agent with bounded tool permissions"
 ```
 
-本包包含大量脚本、schema 和模板，除非发布端已验证所有辅助文件都能被递归获取，否则不要只安装一个远程 `SKILL.md`。
+This package contains many scripts, schemas, and templates. Do not install only a remote `SKILL.md` unless the publisher has verified that all supporting files can be fetched recursively.
 
 ### TRAE
 
-按项目安装完整目录：
+Install the complete directory per project:
 
 ```bash
 git clone https://github.com/DannyLinjx/ai-agent-engineering.git
@@ -447,7 +460,7 @@ mkdir -p YOUR_PROJECT/.trae/skills
 cp -R ai-agent-engineering YOUR_PROJECT/.trae/skills/
 ```
 
-最终结构应为：
+The resulting structure should be:
 
 ```text
 YOUR_PROJECT/
@@ -460,19 +473,19 @@ YOUR_PROJECT/
             └── ...
 ```
 
-也可以在 TRAE 的“设置 → 技能与命令 → 创建/导入”中上传完整 Skill ZIP。TRAE 还支持开放的 `.agents/skills/` 目录：
+You can also upload a complete Skill ZIP in TRAE under Settings → Skills and Commands → Create/Import. TRAE also supports the open `.agents/skills/` directory:
 
 ```text
 YOUR_PROJECT/.agents/skills/ai-agent-engineering/SKILL.md
 ```
 
-使用 `.agents/skills/` 时，需要在 TRAE 设置中启用对应目录。不同地区、插件版和独立 IDE 的路径可能不同，请以当前版本设置页为准。
+When using `.agents/skills/`, enable the corresponding directory in TRAE settings. Paths may differ across regions, plugin versions, and the standalone IDE; use the current version's settings page as the authority.
 
-## 使用方法
+## Usage
 
-### 从 Blueprint 创建企业 Agent 候选
+### Create an Enterprise Agent Candidate from a Blueprint
 
-先从 `templates/agent-blueprint.json` 创建 Blueprint，或参考 `examples/enterprise-agent-blueprint.json`。然后先规划、再应用：
+Create a Blueprint from `templates/agent-blueprint.json` or use `examples/enterprise-agent-blueprint.json` as a reference. Plan first, then apply:
 
 ```bash
 python3 scripts/create_agent_from_blueprint.py \
@@ -482,232 +495,232 @@ python3 scripts/create_agent_from_blueprint.py \
   --blueprint <blueprint.json> --target <project> --apply --report <creation-report.json>
 ```
 
-详细决策、状态、产物与停止条件见 `references/agent-factory.md`。生成结果是待验证的 Agent 候选，不等于已部署或生产就绪。
+See `references/agent-factory.md` for detailed decisions, states, artifacts, and stop conditions. The output is an agent candidate awaiting verification, not a deployment or evidence of production readiness.
 
-### 从零新建 Agent
+### Create a New Agent from Scratch
 
 ```bash
 python3 scripts/scaffold_agent_project.py --language python --name "My Agent" --target ./my-agent
 ```
 
-脚手架包含最小化但完整的运行时骨架（`src/agent_runtime/` 下的 runtime、planner、tools、permissions、models、memory、sessions、context、skills、hooks、subagents、mcp、telemetry、verification、storage、channels、contracts、config），以及 `config/integrations.config.json` 和架构测试。
+The scaffold includes a minimal but complete runtime skeleton under `src/agent_runtime/`: runtime, planner, tools, permissions, models, memory, sessions, context, skills, hooks, subagents, mcp, telemetry, verification, storage, channels, contracts, and config. It also includes `config/integrations.config.json` and architecture tests.
 
-建议的推进顺序：
+Recommended progression:
 
-1. 填写 `templates/agent-charter.md`，明确目标、范围、自治级别、数据与租户、预算、完成与回滚、负责人；
-2. 用 `templates/capability-matrix.md` 建立 21 项能力矩阵（当前状态 / 目标 / 优先级 / 验证方法 / 证据位置）；
-3. 用 `templates/threat-model.md` 建立威胁模型；
-4. 按用户已授权的阶段实施最小垂直切片；缺少计划时参考 P0–P10：每个切片先加契约测试，再实现最小行为，再静态检查、diff 审查、更新矩阵、检查点，最后通过公共接口集成；
-5. 每个阶段运行验收测试并保留证据。
+1. Complete `templates/agent-charter.md`, specifying objectives, scope, autonomy level, data and tenancy, budgets, completion and rollback, and the owner.
+2. Use `templates/capability-matrix.md` to create a 21-capability matrix with current status / target / priority / verification method / evidence location.
+3. Use `templates/threat-model.md` to establish a threat model.
+4. Implement minimal vertical slices under the user's authorized phases; use P0–P10 as a reference when no plan exists. For each slice, add contract tests, implement the smallest behavior, run static checks, review the diff, update the matrix, checkpoint, and finally integrate through public interfaces.
+5. Run acceptance tests and retain evidence for each phase.
 
-### 配置可选集成
+### Configure Optional Integrations
 
 ```bash
-# 仅生成核心版配置（Channel/MCP=none，模型=mock）
+# Generate core-only configuration (Channel/MCP=none, model=mock)
 python3 scripts/configure_integrations.py --output <project>/config/integrations.config.json
 
-# 选择飞书 + 企业微信 Channel、OpenAI 模型、GitHub MCP（stdio）
+# Select Feishu + WeCom Channels, an OpenAI model, and GitHub MCP (stdio)
 python3 scripts/configure_integrations.py \
   --channel feishu --channel wecom \
   --model-provider openai \
   --mcp-server github=stdio \
   --output <project>/config/integrations.config.json
 
-# 校验配置并按 profile 分类哪些验收套件应运行或跳过
+# Validate configuration and classify acceptance suites to run or skip by profile
 python3 scripts/validate_integration_config.py \
   --config <project>/config/integrations.config.json \
   --profile development --json
 ```
 
-生成的配置只保存 `secret://`、`env://`、`vault://` 凭据引用，绝不写入原始密钥。`mock` Provider 提供确定性 fixture，核心测试不依赖线上模型。
+Generated configuration stores only `secret://`, `env://`, and `vault://` credential references, never raw keys. The `mock` Provider supplies deterministic fixtures so that core tests do not depend on live models.
 
-### 审计与验证命令
+### Audit and Validation Commands
 
-从 Skill 目录运行，或使用绝对脚本路径：
+Run from the Skill directory or use absolute script paths:
 
 ```bash
-# 生成现有项目模块清单（可带文件 hash）
+# Generate a module manifest for an existing project, optionally with file hashes
 python3 scripts/generate_module_manifest.py --project <project> --output <manifest.json> --include-hashes
 
-# 评估项目是否具备耐久 Agent 的模块化基础（证据发现，不是形式化证明）
+# Assess the project's modular foundation for a durable agent (evidence discovery, not formal proof)
 python3 scripts/validate_agent_architecture.py --project <project> --json
 
-# 保守的静态安全审计（需要人工复核）
+# Perform a conservative static safety audit (human review required)
 python3 scripts/audit_agent_safety.py --project <project> --json
 
-# 运行有界验收命令并输出机器可读证据报告
+# Run bounded acceptance commands and produce a machine-readable evidence report
 python3 scripts/run_agent_acceptance_tests.py --project <project> --config <commands.json> --report <report.json>
 
-# 校验本 Skill 包结构与内部链接
+# Validate this Skill package's structure and internal links
 python3 scripts/validate_skill_structure.py --skill . --json
 ```
 
-### 脚本一览
+### Script Overview
 
-| 脚本 | 用途 |
+| Script | Purpose |
 | --- | --- |
-| `create_agent_from_blueprint.py` | 从治理后的 Blueprint 生成确定性 Recipe 与候选项目；拒绝凭据、重大未知、未审批外部写入和非空目标 |
-| `scaffold_agent_project.py` | 用 Python、TypeScript 或语言中立 generic 脚手架创建新 Agent 项目（支持 `--dry-run`） |
-| `configure_integrations.py` | 生成可选 Channel / Model Provider / MCP 配置，不收集密钥 |
-| `validate_integration_config.py` | 校验集成配置，按 profile 分类哪些测试应运行或跳过 |
-| `generate_module_manifest.py` | 生成现有项目的确定性模块清单（可带 hash） |
-| `validate_agent_architecture.py` | 评估模块化基础与架构边界（证据发现，需人工确认） |
-| `audit_agent_safety.py` | 保守静态审计常见 Agent 安全控制缺口（需人工 triage） |
-| `run_agent_acceptance_tests.py` | 运行有界验收命令并生成证据报告（argv 必须是数组，绝不使用 shell 字符串；`{python}` 会被替换为当前解释器） |
-| `validate_skill_structure.py` | 校验本 Skill 包结构与内部链接 |
+| `create_agent_from_blueprint.py` | Generate a deterministic Recipe and candidate project from a governed Blueprint; reject credentials, major unknowns, unapproved external writes, and non-empty targets |
+| `scaffold_agent_project.py` | Create an agent project using a Python, TypeScript, or language-neutral generic scaffold; supports `--dry-run` |
+| `configure_integrations.py` | Generate optional Channel / Model Provider / MCP configuration without collecting keys |
+| `validate_integration_config.py` | Validate integration configuration and classify tests to run or skip by profile |
+| `generate_module_manifest.py` | Generate a deterministic module manifest for an existing project, optionally with hashes |
+| `validate_agent_architecture.py` | Assess modular foundations and architecture boundaries through evidence discovery, with human confirmation required |
+| `audit_agent_safety.py` | Conservatively inspect common agent safety-control gaps through static analysis, with human triage required |
+| `run_agent_acceptance_tests.py` | Run bounded acceptance commands and generate evidence reports; argv must be an array, never a shell string; `{python}` is replaced with the current interpreter |
+| `validate_skill_structure.py` | Validate this Skill package's structure and internal links |
 
-## 配置与契约
+## Configuration and Contracts
 
-所有配置与状态都有语言中立的 JSON Schema（见 `schemas/`），包括：
+Configuration and state have language-neutral JSON Schemas in `schemas/`, including:
 
-| 文件 | 内容 |
+| File | Contents |
 | --- | --- |
-| `schemas/agent-blueprint.schema.json` / `templates/agent-blueprint.json` | Agent 产品、感知输入、数据治理、能力、自治、服务目标、实现和验证的受治理构建契约 |
-| `templates/agent-config.yaml` | 运行时参数：最大步数、重规划、超时、失败/重复动作阈值、Token/成本预算、上下文 Token 预算、压缩触发比例、权限默认值、工具白名单、Skill 根目录、记忆开关、存储、遥测 |
-| `templates/permission-policy.yaml` | 默认决策、硬拒绝路径/命令、规则表（类别 + 风险等级 + 效果）、审批超时、参数绑定、脱敏规则 |
-| `templates/integrations.config.json` | Channel / Model Provider / MCP 选择、凭据引用、回退顺序、测试策略 |
-| `examples/tool-manifest.json` | 工具契约：输入 schema、类别、风险等级、副作用、可逆性、幂等、超时、输出上限、必需 scope、测试 |
-| `examples/agent-trace.jsonl` | 端到端 trace 事件格式：请求、权限决策、工具调用、证据、最终结果 |
-| `schemas/agent-state.schema.json` | 运行状态的语言中立基线 |
+| `schemas/agent-blueprint.schema.json` / `templates/agent-blueprint.json` | A governed build contract for agent product requirements, perception inputs, data governance, capabilities, autonomy, service objectives, implementation, and verification |
+| `templates/agent-config.yaml` | Runtime parameters: max steps, replans, timeouts, failure/repeat thresholds, Token/cost budgets, context Token budgets, compaction trigger ratio, default permissions, tool allowlists, Skill roots, memory enablement, storage, and telemetry |
+| `templates/permission-policy.yaml` | Default decisions, hard-denied paths/commands, rule tables (category + risk level + effect), approval timeouts, parameter binding, and redaction rules |
+| `templates/integrations.config.json` | Channel / Model Provider / MCP selection, credential references, fallback order, and test policy |
+| `examples/tool-manifest.json` | Tool contracts: input schemas, categories, risk levels, side effects, reversibility, idempotency, timeouts, output limits, required scopes, and tests |
+| `examples/agent-trace.jsonl` | End-to-end trace event format: requests, permission decisions, tool calls, evidence, and final results |
+| `schemas/agent-state.schema.json` | A language-neutral baseline for runtime state |
 
-配置解析优先级：默认值 → 环境 profile → 租户 → 用户 → Agent → 会话 → 运行覆盖。拒绝策略与硬安全上限不能被更低作用域削弱。每次运行与检查点都要记录有效配置指纹。绝不在日志中输出原始密钥。
+Configuration precedence: defaults → environment profile → tenant → user → Agent → session → Run overrides. Lower scopes cannot weaken deny policies or hard safety limits. Each Run and checkpoint records the effective configuration fingerprint. Never log raw keys.
 
-## 模板
+## Templates
 
-`templates/` 提供：
+`templates/` provides:
 
-- Agent Blueprint（Factory 的权威输入契约）；
-- Agent 章程、能力矩阵、威胁模型、验收测试计划（先于代码完成）；
-- `agent-config.yaml`、`permission-policy.yaml`、`integrations.config.json`（可运行配置骨架）；
-- 工具、Hook、子代理的 Python/TypeScript 模板；
-- Skill 模板；
-- Python 与 TypeScript 两套可执行参考脚手架（含架构测试），以及不生成语言代码的 generic 脚手架。
+- Agent Blueprints, the Factory's authoritative input contract.
+- Agent charters, capability matrices, threat models, and acceptance-test plans, completed before implementation.
+- `agent-config.yaml`, `permission-policy.yaml`, and `integrations.config.json`: runnable configuration skeletons.
+- Python/TypeScript templates for tools, Hooks, and subagents.
+- Skill templates.
+- Runnable Python and TypeScript reference scaffolds with architecture tests, plus a generic scaffold that generates no language-specific code.
 
-模板是交付物骨架，不是执行证据；没有真实命令、退出码、制品或人工签核时，不能把模板项标记为通过。
+Templates are deliverable skeletons, not execution evidence. Do not mark a template item passed without actual commands, exit codes, artifacts, or human sign-off.
 
-## 示例
+## Examples
 
-`examples/` 包含可直接对照的完整示例：
+`examples/` contains complete examples for direct comparison:
 
-| 示例 | 内容 |
+| Example | Contents |
 | --- | --- |
-| `enterprise-agent-blueprint.json` | 企业服务运营 Agent Blueprint：多租户、机密数据、可选集成、确定性验证与人工审批 |
-| `native-local-agent-blueprint.json` | 原生/stdio 核心候选；GUI与加密文件Memory标planned，不生成Web或迁库 |
-| `local-memory-agent-blueprint.json` | React/FastAPI 浏览器对话 + SQLite/FTS5 本地 Memory + guided install 方案 |
-| `browser-enterprise-agent-blueprint.json` | 企业 operations console + PostgreSQL/pgvector Memory + end-to-end 治理方案 |
-| `coding-agent.md` | 编码 Agent 完整垂直切片：检查项目 → 复现失败 → 诊断 → 最小补丁 → 验证 → diff 审查 |
-| `research-agent.md` | 研究 Agent：有证据的技术对比、来源溯源、claim 级证据、不确定性报告 |
-| `enterprise-rag-agent.md` | 企业 RAG Agent：权威结构化规则验证、租户隔离、缓存键、`indeterminate` 失败模式 |
-| `computer-control-agent.md` | 电脑控制 Agent：拒绝危险策略、人工审批、对账与更安全回退 |
-| `multi-agent-workflow.md` | 多 Agent DAG：研究 → 编码 → 测试 → 评审 → 父级验证，含任务契约与合并规则 |
-| `complete-agent-config.yaml` | 生产化 Agent 的完整配置示例 |
-| `configured-integrations.config.json` | 配置了飞书/企业微信、OpenAI+Ollama 回退、GitHub MCP 的示例 |
-| `acceptance-commands-python.json` / `-optional-integrations.json` | 验收命令配置示例（含未配置可选集成的 skip 分类） |
-| `agent-trace.jsonl` | 端到端 trace 示例 |
-| `capability-matrix.json` / `tool-manifest.json` | 能力矩阵与工具清单的机器可读示例 |
-| `eval-cases.jsonl` | 评测用例示例 |
+| `enterprise-agent-blueprint.json` | An enterprise service-operations Agent Blueprint: multi-tenancy, confidential data, optional integrations, deterministic verification, and human approval |
+| `native-local-agent-blueprint.json` | Native/stdio core candidate; GUI and encrypted-file Memory remain planned, with no Web generation or database migration |
+| `local-memory-agent-blueprint.json` | React/FastAPI browser conversations + SQLite/FTS5 local Memory + guided install |
+| `browser-enterprise-agent-blueprint.json` | Enterprise operations console + PostgreSQL/pgvector Memory + end-to-end governance |
+| `coding-agent.md` | A complete coding-agent vertical slice: inspect project → reproduce failure → diagnose → minimal patch → verify → review diff |
+| `research-agent.md` | A research agent: evidence-backed technical comparisons, provenance, claim-level evidence, and uncertainty reporting |
+| `enterprise-rag-agent.md` | An enterprise RAG agent: authoritative structured-rule verification, tenant isolation, cache keys, and `indeterminate` failure modes |
+| `computer-control-agent.md` | A computer-control agent: dangerous-policy denial, human approval, reconciliation, and safer rollback |
+| `multi-agent-workflow.md` | A multi-agent DAG: research → code → test → review → parent verification, with task contracts and merge rules |
+| `complete-agent-config.yaml` | Complete configuration for an agent being prepared for production |
+| `configured-integrations.config.json` | Feishu/WeCom Channels, OpenAI+Ollama fallback, and GitHub MCP configured as examples |
+| `acceptance-commands-python.json` / `-optional-integrations.json` | Acceptance-command configuration examples, including skip classification for unconfigured optional integrations |
+| `agent-trace.jsonl` | End-to-end trace example |
+| `capability-matrix.json` / `tool-manifest.json` | Machine-readable capability matrix and tool-manifest examples |
+| `eval-cases.jsonl` | Evaluation-case examples |
 
-## 参考资料导航
+## Reference Guide
 
-只按任务需要读取对应参考，不要一次性全部加载：
+Read only the references needed for the task; do not load them all at once:
 
-| 需要 | 阅读 |
+| Need | Read |
 |---|---|
-| 从企业需求生成 Agent Blueprint、Recipe 和候选；Agent 创建 Agent | `references/agent-factory.md` |
-| 浏览器对话、运维控制台、React/FastAPI 控制面 | `references/browser-experience.md` |
-| 循环、规划器、预算、重试、取消、完成 | `references/agent-runtime.md` |
-| 工具契约、注册表、命令/路径/网络安全 | `references/tool-system.md` |
-| Skill 发现、选择、作用域、脚本 | `references/skill-system.md` |
-| Token 预算、产物卸载、压缩、注入边界 | `references/context-management.md` |
-| 持久记忆、同意、检索、冲突、删除 | `references/memory-system.md` |
-| SQLite 雏形、企业 Memory 适配器、迁移与部署 | `references/memory-deployment.md` |
-| 会话、检查点、恢复、回退、产物 | `references/session-checkpoint.md` |
-| ALLOW/DENY/ASK、审批、凭据、守卫 | `references/permission-system.md` |
-| 生命周期事件与确定性策略注入 | `references/hook-system.md` |
-| 委派、预算、DAG、结构化合并 | `references/subagent-system.md` |
-| 惰性 MCP 发现、适配器、信任、降级 | `references/mcp-integration.md` |
-| Provider 网关、能力/隐私/预算路由 | `references/model-routing.md` |
-| Telegram、飞书/Lark、企业微信、Slack、Web/API 等可选集成配置 | `references/channels-and-integrations.md` |
-| 租户/用户/工作区/缓存/凭据隔离 | `references/multi-user-isolation.md` |
-| 日志、trace、指标、审计、成本、SLO | `references/observability.md` |
-| 测试金字塔、评测用例、判官、回归门禁 | `references/testing-and-evaluation.md` |
-| 上线、部署、金丝雀、事故、回滚 | `references/production-checklist.md` |
-| 安全边界与滥用用例 | `references/threat-model.md` |
-| Codex/OpenClaw 类行为与成熟度 | `references/framework-alignment.md` |
-| 反复故障诊断 | `references/troubleshooting.md` |
-| 架构分层与依赖方向 | `references/architecture.md` |
-| 九个步骤与停止条件 | `references/workflow.md` |
-| 需求到实现的可追溯映射 | `references/source-requirements-map.md` |
+| Enterprise requirements to an Agent Blueprint, Recipe, and candidate; agents creating agents | `references/agent-factory.md` |
+| Browser chat, operations consoles, React/FastAPI control plane | `references/browser-experience.md` |
+| Loops, planners, budgets, retries, cancellation, completion | `references/agent-runtime.md` |
+| Tool contracts, registries, command/path/network safety | `references/tool-system.md` |
+| Skill discovery, selection, scopes, scripts | `references/skill-system.md` |
+| Token budgets, artifact offloading, compaction, injection boundaries | `references/context-management.md` |
+| Durable memory, consent, retrieval, conflicts, deletion | `references/memory-system.md` |
+| SQLite prototypes, enterprise Memory adapters, migration and deployment | `references/memory-deployment.md` |
+| Sessions, checkpoints, recovery, rewind, artifacts | `references/session-checkpoint.md` |
+| ALLOW/DENY/ASK, approvals, credentials, guards | `references/permission-system.md` |
+| Lifecycle events and deterministic policy injection | `references/hook-system.md` |
+| Delegation, budgets, DAGs, structured merging | `references/subagent-system.md` |
+| Lazy MCP discovery, adapters, trust, degradation | `references/mcp-integration.md` |
+| Provider gateways, capability/privacy/budget routing | `references/model-routing.md` |
+| Optional integration configuration for Telegram, Feishu/Lark, WeCom, Slack, Web/API, and others | `references/channels-and-integrations.md` |
+| Tenant/user/workspace/cache/credential isolation | `references/multi-user-isolation.md` |
+| Logs, traces, metrics, audit, cost, SLOs | `references/observability.md` |
+| Test pyramids, evaluation cases, judges, regression gates | `references/testing-and-evaluation.md` |
+| Launch, deployment, canaries, incidents, rollback | `references/production-checklist.md` |
+| Security boundaries and abuse cases | `references/threat-model.md` |
+| Codex/OpenClaw-class behavior and maturity | `references/framework-alignment.md` |
+| Recurring failure diagnosis | `references/troubleshooting.md` |
+| Architecture layers and dependency direction | `references/architecture.md` |
+| Nine steps and stop conditions | `references/workflow.md` |
+| Traceability from requirements to implementation | `references/source-requirements-map.md` |
 
-## 安全与人类控制
+## Security and Human Control
 
-安全是 P0，不是可选的“上线后补丁”。模型输出、检索内容、记忆、Skill、Hook、MCP 元数据/结果和子代理结果都是**不可信输入**，不能扩展工具、权限、凭据、工作区、预算或租户范围。
+Security is P0, not an optional patch after launch. Model output, retrieved content, memory, Skills, Hooks, MCP metadata/results, and subagent results are **untrusted inputs**. They cannot expand tools, permissions, credentials, workspaces, budgets, or tenant scope.
 
-所有副作用走同一条确定性权限路径：
+All side effects pass through the same deterministic permission path:
 
-- 硬拒绝优先；
-- ASK 审批绑定主体、运行、工具/版本、规范化参数/目标、风险与过期时间；
-- 参数变化必须重新审批；
-- 始终保护凭据、敏感文件、工作区边界、上传/消息、破坏性数据/文件/源码操作、系统安装、支付与生产变更。
+- A hard deny wins.
+- ASK approvals bind the principal, Run, tool/version, normalized arguments/target, risk, and expiry.
+- Changed arguments require new approval.
+- Always protect credentials, sensitive files, workspace boundaries, uploads/messages, destructive data/file/source-control operations, system installation, payments, and production changes.
 
-出现以下情况必须停止并升级，而不是继续尝试：
+Stop and escalate rather than continuing when:
 
-- 缺少权限或不可逆操作未获授权；
-- 策略解析为 DENY/ASK 且无法取得授权；
-- 回滚边界不清晰，或不可逆操作缺少明确处置授权/合适恢复方案；对明确要求丢弃的数据如实记录损失，不偷偷另存巨量备份；
-- 租户隔离无法证明；
-- 评测/证据数据无效；
-- 需要密钥或生产凭据才能完成必需能力；
-- 同一失败在没有新假设的情况下反复出现。
+- Authority is missing or an irreversible operation has not been authorized.
+- Policy resolves to DENY/ASK and approval cannot be obtained.
+- Rollback boundaries are unclear, or irreversible operations lack explicit disposal authority or a suitable recovery plan. For data explicitly designated for disposal, record the loss honestly rather than silently keeping a giant backup.
+- Tenant isolation cannot be established.
+- Evaluation/evidence data is invalid.
+- Required capabilities depend on keys or production credentials.
+- The same failure recurs without a new hypothesis.
 
-可选 Channel / MCP / 开发用线上 Provider 的缺失**不是**停止条件。
+Missing optional Channels / MCP / live Providers for development is **not** a stop condition.
 
-## 验证与交付物
+## Verification and Deliverables
 
-### 验证最低要求
+### Minimum Verification
 
-按风险选择检查，但核心 Agent 发布至少覆盖：
+Select checks according to risk, but a core agent release must cover at least:
 
-- 无工具、单工具、多工具、工具失败、重复/无进展、取消、超时、预算耗尽；
-- 权限 allow/deny/ask/reject/过期、敏感路径、命令注入、外联、破坏性与外部可见动作；
-- 输出卸载与压缩后保留目标、约束、审批与未满足标准；
-- 记忆的同意、检索、冲突、隔离、纠正与删除；
-- 检查点/重启/回退、重复投递、部分副作用与迁移；
-- 已配置 MCP 故障/schema 投毒、已配置 Channel 规范化/发送/健康、路由/回退/隐私、子代理预算/范围/合并；
-- 双租户越权尝试与缓存/搜索/产物隔离；
-- Factory 的 Blueprint/Recipe 确定性、凭据拒绝、重大未知阻断、外部写入审批和非空目标保护；
-- 确定性验证器的负例 + `examples/` 中的相关示例。
+- No-tool, one-tool, multi-tool, tool-failure, repeated/no-progress, cancellation, timeout, and budget-exhaustion cases.
+- Permission allow/deny/ask/reject/expiry, sensitive paths, command injection, network egress, and destructive or externally visible actions.
+- Preservation of goals, constraints, approvals, and unmet criteria after output offloading and compaction.
+- Memory consent, retrieval, conflicts, isolation, correction, and deletion.
+- Checkpoints/restart/rewind, duplicate delivery, partial side effects, and migration.
+- Configured MCP failure/schema poisoning, configured Channel normalization/sending/health, routing/fallback/privacy, and subagent budget/scope/merging.
+- Two-tenant authorization-bypass attempts and cache/search/artifact isolation.
+- Factory Blueprint/Recipe determinism, credential rejection, blocking of major unknowns, external-write approval, and non-empty-target protection.
+- Deterministic verifier negative cases and the relevant examples in `examples/`.
 
-记录命令、退出码、耗时、环境/配置/模型/工具/Skill 版本、用例 ID、指标、阈值与产物路径。生产声明还需要机器可读的就绪门禁与 `references/production-checklist.md` 中的运维证据。
+Record commands, exit codes, duration, environment/config/model/tool/Skill versions, case IDs, metrics, thresholds, and artifact paths. Production claims also require machine-readable readiness gates and the operational evidence in `references/production-checklist.md`.
 
-即使所有可选集成都禁用，也应完成受影响的核心检查。组件/独立工具/主 Runtime/自然语言 E2E/GUI/OS隔离分别报告；最后相关修改后核对真实交付入口和加载进程。必要门禁通过后停止重复扩测；未配置、blocked、未测不能写通过。
+Complete the affected core checks even when all optional integrations are disabled. Report component/independent tool/primary Runtime/natural-language E2E/GUI/OS-isolation results separately. After the final relevant change, verify the actual delivery entry and loaded process. Stop repeating or expanding tests once required gates pass; unconfigured, blocked, or untested cases must not be reported as passed.
 
-### 交付物契约
+### Deliverable Contract
 
-完成后必须报告：
+At completion, report:
 
-- 结果与可工作行为；
-- 架构/能力变化与受影响文件；
-- 配置、schema、迁移与兼容性；
-- 权限、审批、威胁控制与残余风险；
-- 实际运行的测试/评测与失败/跳过项；
-- 运行/部署/监控/回滚说明；
-- Channel、线上 Model Provider、MCP 的选择状态（`run` / `skipped` / `not_applicable` / `blocked`）；
-- 已知限制、阻塞项与优先级排序的下一阶段。
+- Outcomes and working behavior.
+- Architecture/capability changes and affected files.
+- Configuration, schemas, migration, and compatibility.
+- Permissions, approvals, threat controls, and residual risk.
+- Tests/evaluations actually run, including failures and skips.
+- Run/deployment/monitoring/rollback instructions.
+- Selection status for Channels, live Model Providers, and MCP: `run` / `skipped` / `not_applicable` / `blocked`.
+- Known limitations, blockers, and the next phase in priority order.
 
-绝不伪造测试、工具调用、文件、引用、部署或生产就绪结果。
+Never fabricate tests, tool calls, files, citations, deployment, or production-readiness results.
 
-## 与其他 Skill 组合
+## Combining with Other Skills
 
-本 Skill 专注于“构建 Agent 系统”，可以与另外两个独立发布的配套 Skill 组合使用：[engineering-coding-job](https://github.com/DannyLinjx/engineering-coding-job) 与 [loop-engineering](https://github.com/DannyLinjx/loop-engineering)：
+This Skill focuses on building agent systems. It can be combined with two independently published companion Skills: [engineering-coding-job](https://github.com/DannyLinjx/engineering-coding-job) and [loop-engineering](https://github.com/DannyLinjx/loop-engineering):
 
-| Skill | 职责 |
+| Skill | Responsibility |
 | --- | --- |
-| `ai-agent-engineering` | Agent 系统的设计、构建、安全、验证与生产化 |
-| `engineering-coding-job` | 端到端工程交付流水线（需求 → 架构 → 实现 → 测试 → 审查 → 发布 → 运维） |
-| `loop-engineering` | 有界监督循环：计划 → 执行 → 独立验证 → 修正/回退，预算、失败指纹与人工升级 |
+| `ai-agent-engineering` | Agent-system design, building, safety, verification, and production readiness |
+| `engineering-coding-job` | End-to-end engineering delivery: requirements → architecture → implementation → testing → review → release → operations |
+| `loop-engineering` | Bounded supervision: plan → execute → independently verify → correct/rollback, with budgets, failure fingerprints, and human escalation |
 
-组合示例：
+Example combination:
 
 ```text
 Use $loop-engineering to supervise $ai-agent-engineering while building the agent in this repository.
@@ -721,63 +734,63 @@ Limits: at most 6 iterations, 120000 tokens, USD 20, 2 hours.
 Do not commit, push, deploy, or configure live providers.
 ```
 
-组合时，Loop 的 verifier 应检查真实的测试结果、门禁输出与制品，而不是只检查“报告文件存在”。
+When combining these Skills, the Loop verifier should inspect actual test results, gate output, and artifacts rather than only checking that a report file exists.
 
-## 常见问题
+## FAQ
 
-### 安装后找不到 Skill
+### The Skill Is Not Found After Installation
 
-1. 确认目录名为 `ai-agent-engineering`；
-2. 确认目录根部直接包含 `SKILL.md`，没有多嵌套一层同名目录；
-3. 确认安装到了当前平台实际扫描的 Skill 根目录；
-4. 重新开始会话或重启宿主应用；
-5. OpenClaw 用户检查 Agent allowlist；TRAE 用户检查 Agent/SOLO 模式与 `.agents/skills` 开关。
+1. Confirm that the directory is named `ai-agent-engineering`.
+2. Confirm that `SKILL.md` is directly under the directory root, without an extra nested directory of the same name.
+3. Confirm installation to the Skill root actually scanned by the current platform.
+4. Start a new session or restart the host application.
+5. OpenClaw users should check the Agent allowlist; TRAE users should check Agent/SOLO mode and the `.agents/skills` switch.
 
-### 为什么不能只复制 SKILL.md
+### Why Not Copy Only SKILL.md?
 
-`SKILL.md` 会调用包内的脚本、模板、schema、参考与示例。只复制入口文件会让部分流程退化或直接 `blocked`。
+`SKILL.md` uses scripts, templates, schemas, references, and examples in the package. Copying only the entry file degrades some workflows or leaves them directly `blocked`.
 
-### 为什么开发/测试默认用 mock 模型
+### Why Use a Mock Model by Default for Development/Testing?
 
-核心运行时、确定性测试与离线评测不应依赖线上 Provider；`mock` Provider 提供确定性 fixture，让 CI 可复现。只有显式要求的“线上模型验收标准”或 `production` profile 才需要真实 Provider。
+The core runtime, deterministic tests, and offline evaluations should not depend on live Providers. The `mock` Provider supplies deterministic fixtures for reproducible CI. A real Provider is required only for explicitly requested live-model acceptance criteria or a `production` profile.
 
-### 为什么测试在 Python 3.9 上失败
+### Why Do Tests Fail on Python 3.9?
 
-脚手架与部分脚本使用 Python 3.10+ 语法（如 `X | None`）。请使用 Python 3.10 或更高版本（推荐 3.11）。
+The scaffolds and some scripts use Python 3.10+ syntax, such as `X | None`. Use Python 3.10 or later; 3.11 is recommended.
 
-### 它会自动 commit / push / deploy 吗
+### Does It Automatically Commit / Push / Deploy?
 
-不会。本 Skill 会检查并保留用户现有修改，不自动 commit、push、部署或修改外部系统。只有用户明确要求并授权时，宿主 Agent 才应执行对应动作。
+No. This Skill inspects and preserves existing user changes and does not automatically commit, push, deploy, or modify external systems. The host agent should perform those actions only when the user explicitly requests and authorizes them.
 
-### 它会替我做安全决策吗
+### Does It Make Security Decisions for Me?
 
-不会。`audit_agent_safety.py` 是保守的静态审计，其结果需要人工 triage；架构验证器是证据发现工具，不是形式化证明。安全决策最终由人与确定性策略共同负责。
+No. `audit_agent_safety.py` performs conservative static analysis and requires human triage. The architecture validator discovers evidence; it is not a formal proof. Humans and deterministic policies remain responsible for security decisions.
 
-### 如何更新
+### How Do I Update It?
 
-从 GitHub 拉取新版本后，用完整的新目录替换旧版本。替换前保留你自己修改过的配置或模板；正在运行的 Agent 运行数据（会话、检查点、state）应保存在 Skill 目录之外。
+Pull the new version from GitHub and replace the old version with the complete new directory. Preserve your own modified configuration and templates before replacing them. Store running-agent data—sessions, checkpoints, and state—outside the Skill directory.
 
-## 开发与测试
+## Development and Testing
 
 ```bash
-# 校验包结构与内部链接
+# Validate package structure and internal links
 python3 scripts/validate_skill_structure.py --skill . --json
 
-# 运行全部测试（需要 Python 3.10+）
+# Run all tests (Python 3.10+ required)
 python3 -m unittest discover -s tests -v
 ```
 
-测试覆盖：全部 JSON/JSONL 可解析、包结构与可选 Host 元数据校验、Python 脚手架生成 + 配置路径完整性 + 集成配置校验 + 架构验证 + 安全审计 + 模块清单 + 验收测试（含未配置可选集成的 skip 分类）、TypeScript 脚手架 dry-run，以及 generic 语言中立脚手架。
+Tests cover JSON/JSONL parsing, package structure and optional Host metadata, Python scaffold generation + configuration-path completeness + integration configuration validation + architecture validation + safety audits + module manifests + acceptance tests (including skip classification for unconfigured optional integrations), TypeScript scaffold dry runs, and the language-neutral generic scaffold.
 
-## 贡献
+## Contributing
 
-欢迎提交 Issue 与 Pull Request。贡献前请：
+Issues and Pull Requests are welcome. Before contributing:
 
-1. 运行 `python3 scripts/validate_skill_structure.py --skill . --json` 确认包结构合法；
-2. 运行 `python3 -m unittest discover -s tests -v` 确认测试通过；
-3. 为新增能力补充对应的 `references/` 文档、schema 与测试；
-4. 保持“模型提议、确定性代码决策”与“安全是 P0”两条核心原则。
+1. Run `python3 scripts/validate_skill_structure.py --skill . --json` to confirm package structure.
+2. Run `python3 -m unittest discover -s tests -v` to confirm that tests pass.
+3. Add the appropriate `references/` documentation, schemas, and tests for new capabilities.
+4. Preserve the two central principles: the model proposes while deterministic code decides, and security is P0.
 
-## 许可证
+## License
 
-本 Skill 以 [MIT License](./LICENSE) 发布，Copyright (c) 2026 DannyJ。许可证全文见仓库根目录的 `LICENSE` 文件。
+This Skill is released under the [MIT License](./LICENSE), Copyright (c) 2026 DannyJ. See the repository-root `LICENSE` file for the full license text.

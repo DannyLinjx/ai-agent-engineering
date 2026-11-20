@@ -4,7 +4,7 @@ Design the runtime as replaceable modules connected by explicit contracts. The m
 
 ## Layer model
 
-1. **Interface** — optional CLI, native graphical CLI client, web, API, IDE, Telegram, Feishu/Lark, WeCom/企业微信, Slack, Discord, Teams, email, webhook, or automation adapters. Normalize identity, channel, locale, attachments, cancel signal, and response streaming. A core runtime may have no registered channel.
+1. **Interface** — optional CLI, native graphical CLI client, web, API, IDE, Telegram, Feishu/Lark, WeCom, Slack, Discord, Teams, email, webhook, or automation adapters. Normalize identity, channel, locale, attachments, cancel signal, and response streaming. A core runtime may have no registered channel.
 2. **Identity, tenant, session, workspace** — authenticate, resolve scopes, enforce workspace roots, and open or resume a session.
 3. **Orchestrator** — classify intent, select mode, create a plan, schedule steps, maintain state, and apply termination rules.
 4. **Context, memory, skill selection** — build only the task-relevant context under a measured token budget.

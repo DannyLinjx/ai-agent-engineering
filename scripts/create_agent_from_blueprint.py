@@ -179,7 +179,7 @@ def _inline_credentials(value: Any, path: str = "") -> list[dict[str, Any]]:
 
 
 def _approval_trigger(action: str) -> str | None:
-    if "外部" in action and any(marker in action for marker in ("写", "发送", "发布", "提交")):
+    if "\u5916\u90e8" in action and any(marker in action for marker in ("\u5199", "\u53d1\u9001", "\u53d1\u5e03", "\u63d0\u4ea4")):
         return "external_write"
     normalized = re.sub(r"[^a-z0-9]+", "_", action.lower()).strip("_")
     if normalized in APPROVAL_TRIGGERS:
@@ -261,7 +261,7 @@ def _validate_profile_sections(value: dict[str, Any]) -> list[dict[str, Any]]:
             findings.append(issue("pgvector-store-required", "pgvector requires PostgreSQL canonical storage", path="memory.vector_index"))
         if memory.get("graph_store") == "neo4j":
             scenarios = _string_set(_section(value, "verification").get("mandatory_scenarios"))
-            graph_terms = ("graph", "relationship", "multi-hop", "图", "关系", "多跳")
+            graph_terms = ("graph", "relationship", "multi-hop", "\u56fe", "\u5173\u7cfb", "\u591a\u8df3")
             if not any(any(term in scenario.lower() for term in graph_terms) for scenario in scenarios):
                 findings.append(issue("graph-acceptance-required", "Neo4j requires an explicit graph acceptance scenario", path="memory.graph_store"))
     return findings
