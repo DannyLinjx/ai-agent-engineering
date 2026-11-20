@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/readme-workflow.svg" alt="Illustrative workflow: inspect the existing system, define contracts, build an increment, and verify evidence. Deterministic controls apply throughout." width="960" />
+  <img src="assets/readme-workflow.png" alt="Illustrative workflow: inspect the existing system, define contracts, build an increment, and verify evidence. Deterministic controls apply throughout." width="960" />
 </p>
 
 AI Agent Engineering is a reusable Skill for building and improving tool-using agents. Install it in your coding agent, describe the outcome, and work through source inspection, typed contracts, implementation, and verification.
